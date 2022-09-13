@@ -13,3 +13,12 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+.vscode/*
+.history
+common/sql_alchemy.pyi
+node_modules
+npm-debug.log
+yarn.lock
+
+.idea
