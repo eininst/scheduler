@@ -1,0 +1,53 @@
+app: fastgo
+port: 8001
+
+---
+profile: dev
+
+redis:
+  addr: localhost:6379
+  db: 0
+  poolSize: 100
+  minIdleCount: 20
+
+mysql:
+  dsn: nft:Aa505814@tcp(localhost:3306)/nft?charset=utf8mb4&parseTime=True&loc=Local
+  maxIdleCount: 32
+  maxOpenCount: 128
+  maxLifetime: 7200
+
+rs:
+  prefix: MQ_
+  sender:
+    maxLen: 100
+  receive:
+    work: 100
+    readCount: 10
+    blockTimeSecond: 20
+    maxRetries: 3
+    timeoutSecond: 300
+---
+profile: test
+
+redis:
+  addr: localhost:6379
+  db: 0
+  poolSize: 100
+  minIdleCount: 20
+
+mysql:
+  dsn: nft:Aa505814@tcp(localhost:3306)/nft?charset=utf8mb4&parseTime=True&loc=Local
+  maxIdleCount: 32
+  maxOpenCount: 128
+  maxLifetime: 7200
+
+rs:
+  prefix: MQ_
+  sender:
+    maxLen: 100
+  receive:
+    work: 100
+    readCount: 10
+    blockTimeSecond: 20
+    maxRetries: 3
+    timeoutSecond: 300
