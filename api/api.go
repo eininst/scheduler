@@ -5,6 +5,7 @@ import (
 	"github.com/eininst/ninja"
 	"github.com/eininst/scheduler/configs"
 	"github.com/eininst/scheduler/internal/common/jwt"
+	"github.com/eininst/scheduler/internal/model"
 	"github.com/eininst/scheduler/internal/service"
 	"github.com/eininst/scheduler/internal/service/user"
 	"github.com/gofiber/fiber/v2"
@@ -22,19 +23,20 @@ type Sapi struct {
 }
 
 func (a *Sapi) Index(c *fiber.Ctx) error {
-	flog.Info(c.Path())
 	if c.Path() != "/login" {
 		token := c.Cookies("access_token")
 		if token == "" {
 			return c.Redirect("/login", http.StatusTemporaryRedirect)
 		}
-		data, er := a.Jwt.ParseToken(token)
+
+		var user model.SchedulerUser
+		er := a.Jwt.ParseToken(token, &user)
 		if er != nil {
 			return er
 		}
 
 		return c.Render("index", fiber.Map{
-			"user":   data,
+			"user":   user,
 			"assets": configs.Get("assets"),
 		})
 	}

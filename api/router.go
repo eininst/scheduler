@@ -31,7 +31,6 @@ func (r *Router) Init() {
 	r.App.Post("/api/login", r.Sapi.Login)
 	r.App.Post("/api/logout", r.Sapi.Logout)
 
-	g := r.App.Group("/api/u", r.RequireLogin)
-	g.Post("/task")
+	//g := r.App.Group("/api/u", r.RequireLogin)
 	r.App.Get("/*", r.Sapi.Index)
 }
