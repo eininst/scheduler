@@ -45,6 +45,7 @@ func (a *Sapi) Index(c *fiber.Ctx) error {
 		"assets": configs.Get("assets"),
 	})
 }
+
 func (a *Sapi) Login(c *fiber.Ctx) error {
 	var u struct {
 		Username string `json:"username"`
