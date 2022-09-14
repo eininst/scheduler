@@ -12,6 +12,6 @@ func Inject() {
 	ninja.Provide(rcli)
 	ninja.Provide(rlock.New(rcli))
 
-	db := data.NewDB()
-	ninja.Provide(db)
+	//db := data.NewDB()
+	//ninja.Provide(db)
 }

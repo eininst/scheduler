@@ -4,6 +4,8 @@ port: 8001
 ---
 profile: dev
 
+assets: http://localhost:8000
+
 redis:
   addr: localhost:6379
   db: 0
@@ -28,7 +30,7 @@ rs:
     timeoutSecond: 300
 ---
 profile: test
-
+assets: /assets
 redis:
   addr: localhost:6379
   db: 0
