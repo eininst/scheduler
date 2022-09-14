@@ -13,8 +13,8 @@ type Jwt struct {
 }
 
 type Token struct {
-	Data interface{} `json:"data"`
-	Exp  int64       `json:"exp"`
+	Data string `json:"data"`
+	Exp  int64  `json:"exp"`
 }
 
 func New(secretKey string) *Jwt {
@@ -22,8 +22,9 @@ func New(secretKey string) *Jwt {
 }
 
 func (j *Jwt) CreateToken(data interface{}, expire time.Duration) string {
+	d, _ := json.Marshal(data)
 	b, _ := json.Marshal(&Token{
-		Data: data,
+		Data: string(d),
 		Exp:  time.Now().UnixNano() + int64(expire),
 	})
 	result, err := util.AesEncrypt(b, []byte(j.SecretKey))
@@ -33,19 +34,21 @@ func (j *Jwt) CreateToken(data interface{}, expire time.Duration) string {
 	return base64.StdEncoding.EncodeToString(result)
 }
 
-func (j *Jwt) ParseToken(token string) (interface{}, error) {
+func (j *Jwt) ParseToken(token string, v interface{}) error {
 	b, _ := base64.StdEncoding.DecodeString(token)
 	origData, err := util.AesDecrypt(b, []byte(j.SecretKey))
 	if err != nil {
-		return nil, err
+		return err
 	}
 	var tk Token
 	err = json.Unmarshal(origData, &tk)
 	if err != nil {
-		return nil, err
+		return err
 	}
+
 	if time.Now().UnixNano() > tk.Exp {
-		return nil, service.NewServiceError("token is expired")
+		return service.NewServiceError("token is expired")
 	}
-	return tk.Data, nil
+
+	return json.Unmarshal([]byte(tk.Data), &v)
 }

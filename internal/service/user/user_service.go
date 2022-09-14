@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"github.com/eininst/scheduler/internal/model"
 	"github.com/eininst/scheduler/internal/service"
 	"github.com/eininst/scheduler/internal/util"
 	"github.com/go-redis/redis/v8"
@@ -10,7 +11,7 @@ import (
 )
 
 type UserService interface {
-	Login(ctx context.Context, username string, password string) (*service.SchedulerUser, error)
+	Login(ctx context.Context, username string, password string) (*model.SchedulerUser, error)
 }
 
 type userService struct {
@@ -24,9 +25,9 @@ func NewService() UserService {
 }
 
 func (us *userService) Login(ctx context.Context,
-	username string, password string) (*service.SchedulerUser, error) {
+	username string, password string) (*model.SchedulerUser, error) {
 
-	var u service.SchedulerUser
+	var u model.SchedulerUser
 	us.Db.First(&u, "name=?", username)
 	if u.Id == 0 {
 		return nil, service.NewServiceError("账号或密码错误")
@@ -37,6 +38,6 @@ func (us *userService) Login(ctx context.Context,
 	return &u, nil
 }
 
-func (t *userService) Add(ctx context.Context, user *service.SchedulerUser) error {
+func (t *userService) Add(ctx context.Context, user *model.SchedulerUser) error {
 	return nil
 }

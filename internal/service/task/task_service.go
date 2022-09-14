@@ -2,7 +2,7 @@ package task
 
 import (
 	"context"
-	"github.com/eininst/scheduler/internal/types"
+	"github.com/eininst/scheduler/internal/model"
 	"github.com/go-redis/redis/v8"
 )
 
@@ -12,6 +12,6 @@ type taskService struct {
 	Rcli *redis.Client `inject:""`
 }
 
-func (t *taskService) Add(ctx context.Context, task *types.Task) error {
+func (t *taskService) Add(ctx context.Context, task *model.SchedulerTask) error {
 	return nil
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/eininst/scheduler/internal/service"
 	"github.com/eininst/scheduler/internal/service/user"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/session"
 	"net/http"
 	"time"
 )
@@ -20,7 +19,6 @@ func init() {
 type Sapi struct {
 	Jwt         *jwt.Jwt         `inject:""`
 	UserService user.UserService `inject:""`
-	Store       *session.Store   `inject:""`
 }
 
 func (a *Sapi) Index(c *fiber.Ctx) error {
@@ -84,4 +82,8 @@ func (a *Sapi) Logout(c *fiber.Ctx) error {
 	c.Cookie(cookie)
 
 	return c.SendStatus(http.StatusOK)
+}
+
+func (a *Sapi) TaskAdd(c *fiber.Ctx) error {
+	return nil
 }

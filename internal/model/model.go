@@ -1,4 +1,4 @@
-package service
+package model
 
 type SchedulerUser struct {
 	Id         int64  `gorm:"primary_key" json:"id"`
