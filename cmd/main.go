@@ -4,13 +4,13 @@ import (
 	"fmt"
 	grace "github.com/eininst/fiber-prefork-grace"
 	"github.com/eininst/flog"
+	"github.com/eininst/ninja"
+	"github.com/eininst/scheduler/api"
 	"github.com/eininst/scheduler/configs"
 	"github.com/eininst/scheduler/internal/conf"
 	"github.com/eininst/scheduler/internal/service"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/template/html"
-	"net/http"
 	"time"
 )
 
@@ -21,6 +21,7 @@ func init() {
 	configs.SetConfig("./configs/config.yml")
 
 	conf.Inject()
+
 }
 
 func main() {
@@ -32,16 +33,9 @@ func main() {
 		WriteTimeout: time.Second * 10,
 		ErrorHandler: service.ErrorHandler,
 	})
+	app.Static("/assets", "./web/dist")
 
-	app.Use("assets", filesystem.New(filesystem.Config{
-		Root: http.Dir("./web/dist"),
-	}))
-
-	app.Get("/*", func(c *fiber.Ctx) error {
-		return c.Render("index", fiber.Map{
-			"assets": configs.Get("assets"),
-		})
-	})
+	ninja.Install(new(api.Router), app)
 
 	grace.Listen(app, ":8999")
 }

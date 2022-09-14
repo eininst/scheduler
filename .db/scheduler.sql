@@ -9,8 +9,7 @@ CREATE TABLE `scheduler_user`
     `mail`        varchar(200) default '',
     `create_time` varchar(20)  DEFAULT '',
     PRIMARY KEY (`id`),
-    KEY           `idx_relate_id` (`relate_id`),
-    KEY           `idx_target_id` (`target_id`)
+    KEY           `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
