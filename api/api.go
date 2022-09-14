@@ -29,14 +29,14 @@ func (a *Sapi) Index(c *fiber.Ctx) error {
 			return c.Redirect("/login", http.StatusTemporaryRedirect)
 		}
 
-		var user model.SchedulerUser
-		er := a.Jwt.ParseToken(token, &user)
+		var u model.SchedulerUser
+		er := a.Jwt.ParseToken(token, &u)
 		if er != nil {
 			return er
 		}
 
 		return c.Render("index", fiber.Map{
-			"user":   user,
+			"user":   u,
 			"assets": configs.Get("assets"),
 		})
 	}
