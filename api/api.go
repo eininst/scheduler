@@ -2,9 +2,9 @@ package api
 
 import (
 	"github.com/eininst/flog"
+	"github.com/eininst/go-jwt"
 	"github.com/eininst/ninja"
 	"github.com/eininst/scheduler/configs"
-	"github.com/eininst/scheduler/internal/common/jwt"
 	"github.com/eininst/scheduler/internal/model"
 	"github.com/eininst/scheduler/internal/service"
 	"github.com/eininst/scheduler/internal/service/user"

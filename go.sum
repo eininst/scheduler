@@ -107,6 +107,8 @@ github.com/eininst/fiber-prefork-grace v0.0.0-20220909123310-3d1d6971b1cc h1:IWg
 github.com/eininst/fiber-prefork-grace v0.0.0-20220909123310-3d1d6971b1cc/go.mod h1:JU9F6FJV3+pS4Kayo1QyT/HLJK82DEpJl0PLU2MrncQ=
 github.com/eininst/flog v0.0.0-20220904020527-6ff9b203833e h1:uaUKxukORBRiMMmZhl2OQohjZWaDOH0KdHbPpMH3CQY=
 github.com/eininst/flog v0.0.0-20220904020527-6ff9b203833e/go.mod h1:PV7P+0WRiNj3etQlnG32G/XCpNeB+Bs9ksEzaCAO5qw=
+github.com/eininst/go-jwt v0.0.0-20220915035637-67ac12d520ac h1:jtWaOcTlQAFiW8D04uobE3SHoa9UohLSJyvUFHq8ccI=
+github.com/eininst/go-jwt v0.0.0-20220915035637-67ac12d520ac/go.mod h1:2cvFTPC8CVHcTQSkhIeUFrWF0Z39sh9mFl8qLWPQ8AE=
 github.com/eininst/ninja v0.0.0-20220910001328-8c94e641ae51 h1:jzpXKlh9fE/ZcnuL4gygIyMaK4/h/Fy/0lOdfhefzOI=
 github.com/eininst/ninja v0.0.0-20220910001328-8c94e641ae51/go.mod h1:YPP+4Ybv7oO8dcTxRM18mZbNDLYjpgvhWtul+vSwFRo=
 github.com/eininst/rlock v0.0.0-20220913011522-0c433e981d62 h1:x2rfAf19WQbcHCfo1laCLDwmfvCE97Ny8ckL/o/WjTg=

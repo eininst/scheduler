@@ -1,7 +1,8 @@
 package api
 
 import (
-	"github.com/eininst/scheduler/internal/common/jwt"
+	"errors"
+	"github.com/eininst/go-jwt"
 	"github.com/eininst/scheduler/internal/model"
 	"github.com/eininst/scheduler/internal/service"
 	"github.com/gofiber/fiber/v2"
@@ -20,9 +21,10 @@ func (r *Router) RequireLogin(c *fiber.Ctx) error {
 	}
 	var user model.SchedulerUser
 	er := r.Jwt.ParseToken(token, &user)
-	if er != nil {
-		return er
+	if errors.Is(er, jwt.Expired) {
+		return service.NewServiceError("token is expired")
 	}
+
 	c.Locals("user", user)
 	return c.Next()
 }
