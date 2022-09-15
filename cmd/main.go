@@ -25,6 +25,7 @@ func init() {
 }
 
 func main() {
+	//fiber.MIMEApplicationForm
 	engine := html.New("./web/views", ".html")
 	app := fiber.New(fiber.Config{
 		Prefork:      false,

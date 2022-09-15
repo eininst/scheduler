@@ -19,6 +19,7 @@ type SchedulerTask struct {
 	Spec            string `json:"spec"`
 	Url             string `json:"url"`
 	Method          string `json:"method"`
+	ContentType     string `json:"contentType"`
 	Body            string `json:"body"`
 	Leader          string `json:"leader"`
 	Timeout         int64  `json:"timeout"`

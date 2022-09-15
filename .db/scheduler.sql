@@ -22,6 +22,7 @@ CREATE TABLE `scheduler_task`
     `spec`              varchar(64)  DEFAULT '',
     `url`               varchar(128) DEFAULT 0,
     `method`            varchar(128) DEFAULT '',
+    `contentType`       varchar(128) DEFAULT '',
     `body`              varchar(255) DEFAULT '',
     `timeout`           int(10) DEFAULT 0,
     `max_retries`       int(10) DEFAULT 0,

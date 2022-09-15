@@ -28,7 +28,7 @@ func (us *userService) Login(ctx context.Context,
 	username string, password string) (*model.SchedulerUser, error) {
 
 	var u model.SchedulerUser
-	us.Db.First(&u, "name=?", username)
+	us.Db.First(&u, "name = ?", username)
 	if u.Id == 0 {
 		return nil, service.NewServiceError("账号或密码错误")
 	}
