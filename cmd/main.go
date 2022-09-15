@@ -28,10 +28,8 @@ func main() {
 	//fiber.MIMEApplicationForm
 	engine := html.New("./web/views", ".html")
 	app := fiber.New(fiber.Config{
-		Prefork:      false,
 		Views:        engine,
 		ReadTimeout:  time.Second * 10,
-		WriteTimeout: time.Second * 10,
 		ErrorHandler: service.ErrorHandler,
 	})
 	app.Static("/assets", "./web/dist")

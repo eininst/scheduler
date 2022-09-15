@@ -26,6 +26,7 @@ func (r *Router) RequireLogin(c *fiber.Ctx) error {
 	}
 
 	c.Locals("user", user)
+	c.Locals("userId", user.Id)
 	return c.Next()
 }
 
@@ -33,6 +34,9 @@ func (r *Router) Init() {
 	r.App.Post("/api/login", r.Sapi.Login)
 	r.App.Post("/api/logout", r.Sapi.Logout)
 
-	//g := r.App.Group("/api/u", r.RequireLogin)
+	g := r.App.Group("/api/u", r.RequireLogin)
+	g.Post("/task/add", r.Sapi.TaskAdd)
+	g.Get("/task/page", r.Sapi.TaskPage)
+
 	r.App.Get("/*", r.Sapi.Index)
 }

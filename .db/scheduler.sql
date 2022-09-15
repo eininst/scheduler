@@ -15,26 +15,25 @@ CREATE TABLE `scheduler_user`
 
 CREATE TABLE `scheduler_task`
 (
-    `id`                bigint(20) NOT NULL AUTO_INCREMENT,
-    `user_id`           bigint(20) DEFAULT '',
-    `name`              varchar(100) DEFAULT '',
-    `group`             varchar(64)  default '',
-    `spec`              varchar(64)  DEFAULT '',
-    `url`               varchar(128) DEFAULT 0,
-    `method`            varchar(128) DEFAULT '',
-    `contentType`       varchar(128) DEFAULT '',
-    `body`              varchar(255) DEFAULT '',
-    `timeout`           int(10) DEFAULT 0,
-    `max_retries`       int(10) DEFAULT 0,
-    `mail`              varchar(200) DEFAULT '',
-    `status`            varchar(32)  DEFAULT '',
-    `excute_retain_day` int(10) DEFAULT 0,
-    `create_time`       varchar(20)  DEFAULT '',
+    `id`           bigint(20) NOT NULL AUTO_INCREMENT,
+    `user_id`      bigint(20) DEFAULT 0,
+    `name`         varchar(100)  DEFAULT '',
+    `group`        varchar(64)   default '',
+    `spec`         varchar(64)   DEFAULT '',
+    `url`          varchar(128)  DEFAULT 0,
+    `method`       varchar(128)  DEFAULT '',
+    `content_type` varchar(128)  DEFAULT '',
+    `body`         varchar(1024) DEFAULT '',
+    `timeout`      int(10) DEFAULT 0,
+    `max_retries`  int(10) DEFAULT 0,
+    `status`       varchar(32)   DEFAULT '',
+    `create_time`  varchar(20)   DEFAULT '',
     PRIMARY KEY (`id`),
-    KEY                 `idx_user_id` (`user_id`),
-    KEY                 `idx_group` (`group`),
-    KEY                 `idx_status` (`status`),
-    KEY                 `idx_create_time` (`create_time`)
+    KEY            `idx_user_id` (`user_id`),
+    UNIQUE KEY `idx_name` (`name`),
+    KEY            `idx_group` (`group`),
+    KEY            `idx_status` (`status`),
+    KEY            `idx_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 

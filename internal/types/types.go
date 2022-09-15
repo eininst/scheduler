@@ -6,26 +6,14 @@ type Page[T any] struct {
 	Extra any   `json:"extra"`
 }
 
-type Task struct {
-	Id         string `json:"id"`
-	Name       string `json:"name"`
-	Spec       string `json:"spec"`
-	Url        string `json:"url"`
-	Method     string `json:"method"`
-	Body       string `json:"body"`
-	Leader     string `json:"leader"`
-	Timeout    int64  `json:"timeout"`
-	MaxRetries int    `json:"maxRetries"`
-	Mail       string `json:"mail"`
+type PageReq struct {
+	PageSize int `json:"pageSize" form:"pageSize"`
+	Current  int `json:"current" form:"current"`
 }
-
-type TaskExcuteInfo struct {
-	TaskId    string `json:"taskId"`
-	TaskObj   string `json:"taskObj"`
-	TaskName  string `json:"taskName"`
-	TaskUrl   string `json:"taskUrl"`
-	Code      int    `json:"code"`
-	Response  string `json:"response"`
-	StartTime string `json:"startTime"`
-	EndTime   string `json:"endTime"`
+type TaskOption struct {
+	*PageReq
+	UserId int64  `json:"userId" form:"userId"`
+	Name   string `json:"name" form:"name"`
+	Group  string `json:"group" form:"group"`
+	Status string `json:"status" form:"status"`
 }

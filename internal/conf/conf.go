@@ -6,12 +6,12 @@ import (
 	"github.com/eininst/rlock"
 	"github.com/eininst/scheduler/configs"
 	"github.com/eininst/scheduler/internal/data"
+	"github.com/eininst/scheduler/internal/service/task"
 	"github.com/eininst/scheduler/internal/service/user"
 )
 
 func Inject() {
 	//inject resources
-
 	rcli := data.NewRedisClient()
 	ninja.Provide(rcli)
 	ninja.Provide(rlock.New(rcli))
@@ -23,4 +23,5 @@ func Inject() {
 
 	//inject services
 	ninja.Provide(user.NewService())
+	ninja.Provide(task.NewService())
 }

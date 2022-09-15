@@ -12,22 +12,19 @@ type SchedulerUser struct {
 }
 
 type SchedulerTask struct {
-	Id              int64  `gorm:"primary_key" json:"id"`
-	UserId          int64  `json:"userId"`
-	Name            string `json:"name"`
-	Group           string `json:"group"`
-	Spec            string `json:"spec"`
-	Url             string `json:"url"`
-	Method          string `json:"method"`
-	ContentType     string `json:"contentType"`
-	Body            string `json:"body"`
-	Leader          string `json:"leader"`
-	Timeout         int64  `json:"timeout"`
-	MaxRetries      int    `json:"maxRetries"`
-	Mail            string `json:"mail"`
-	Status          string `json:"status"`
-	ExcuteRetainDay int    `json:"excute_retain_day"`
-	CreateTime      string `json:"createTime"`
+	Id          int64  `gorm:"primary_key" json:"id"`
+	UserId      int64  `json:"userId"`
+	Name        string `json:"name"`
+	Group       string `json:"group"`
+	Spec        string `json:"spec"`
+	Url         string `json:"url"`
+	Method      string `json:"method"`
+	ContentType string `json:"contentType"`
+	Body        string `json:"body"`
+	Timeout     int64  `json:"timeout"`
+	MaxRetries  int    `json:"maxRetries"`
+	Status      string `json:"status"`
+	CreateTime  string `json:"createTime"`
 }
 
 type SchedulerTaskExcute struct {

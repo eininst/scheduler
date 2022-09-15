@@ -7,7 +7,9 @@ import (
 	"github.com/eininst/scheduler/configs"
 	"github.com/eininst/scheduler/internal/model"
 	"github.com/eininst/scheduler/internal/service"
+	"github.com/eininst/scheduler/internal/service/task"
 	"github.com/eininst/scheduler/internal/service/user"
+	"github.com/eininst/scheduler/internal/types"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
 	"time"
@@ -20,6 +22,7 @@ func init() {
 type Sapi struct {
 	Jwt         *jwt.Jwt         `inject:""`
 	UserService user.UserService `inject:""`
+	TaskService task.TaskService `inject:""`
 }
 
 func (a *Sapi) Index(c *fiber.Ctx) error {
@@ -88,5 +91,36 @@ func (a *Sapi) Logout(c *fiber.Ctx) error {
 }
 
 func (a *Sapi) TaskAdd(c *fiber.Ctx) error {
-	return nil
+	var t model.SchedulerTask
+	er := c.BodyParser(&t)
+	if er != nil {
+		return er
+	}
+	uid := c.Locals("userId").(int64)
+	t.UserId = uid
+
+	er = a.TaskService.Add(c.Context(), &t)
+	if er != nil {
+		return er
+	}
+
+	return c.SendStatus(http.StatusOK)
+}
+
+func (a *Sapi) TaskPage(c *fiber.Ctx) error {
+	var opt types.TaskOption
+
+	er := c.QueryParser(&opt)
+	if er != nil {
+		return er
+	}
+
+	flog.Info(opt)
+
+	r, er := a.TaskService.PageByOption(c.Context(), &opt)
+	if er != nil {
+		return er
+	}
+
+	return c.JSON(r)
 }
