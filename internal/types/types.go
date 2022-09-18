@@ -17,3 +17,24 @@ type TaskOption struct {
 	Group  string `json:"group" form:"group"`
 	Status string `json:"status" form:"status"`
 }
+
+type TaskDTO struct {
+	Id           int64  `gorm:"primary_key" json:"id"`
+	UserId       int64  `json:"userId"`
+	UserName     string `json:"userName"`
+	UserRealName string `json:"userRealName"`
+	UserHead     string `json:"userHead"`
+	UserMail     string `json:"userMail"`
+	Name         string `json:"name"`
+	Group        string `json:"group"`
+	Spec         string `json:"spec"`
+	Url          string `json:"url"`
+	Method       string `json:"method"`
+	ContentType  string `json:"contentType"`
+	Body         string `json:"body"`
+	Timeout      int64  `json:"timeout"`
+	MaxRetries   int    `json:"maxRetries"`
+	Desc         string `json:"desc"`
+	Status       string `json:"status"`
+	CreateTime   string `json:"createTime"`
+}

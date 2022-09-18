@@ -15,6 +15,7 @@ func Inject() {
 	rcli := data.NewRedisClient()
 	ninja.Provide(rcli)
 	ninja.Provide(rlock.New(rcli))
+	ninja.Provide(data.NewRsClient(rcli))
 
 	db := data.NewDB()
 	ninja.Provide(db)

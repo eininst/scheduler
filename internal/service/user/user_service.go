@@ -12,11 +12,12 @@ import (
 
 type UserService interface {
 	Login(ctx context.Context, username string, password string) (*model.SchedulerUser, error)
+	List(ctx context.Context) ([]*model.SchedulerUser, error)
 }
 
 type userService struct {
 	Store *session.Store
-	Db    *gorm.DB      `inject:""`
+	DB    *gorm.DB      `inject:""`
 	Rcli  *redis.Client `inject:""`
 }
 
@@ -28,7 +29,7 @@ func (us *userService) Login(ctx context.Context,
 	username string, password string) (*model.SchedulerUser, error) {
 
 	var u model.SchedulerUser
-	us.Db.First(&u, "name = ?", username)
+	us.DB.First(&u, "name = ?", username)
 	if u.Id == 0 {
 		return nil, service.NewServiceError("账号或密码错误")
 	}
@@ -38,6 +39,12 @@ func (us *userService) Login(ctx context.Context,
 	return &u, nil
 }
 
-func (t *userService) Add(ctx context.Context, user *model.SchedulerUser) error {
+func (us *userService) Add(ctx context.Context, user *model.SchedulerUser) error {
 	return nil
+}
+
+func (us *userService) List(ctx context.Context) ([]*model.SchedulerUser, error) {
+	var users []*model.SchedulerUser
+	us.DB.WithContext(ctx).Find(&users, "status = 'ok'")
+	return users, nil
 }

@@ -8,6 +8,7 @@ type SchedulerUser struct {
 	Role       string `json:"role"`
 	Head       string `json:"head"`
 	Mail       string `json:"mail"`
+	Status     string `json:"status"`
 	CreateTime string `json:"createTime"`
 }
 
@@ -23,6 +24,7 @@ type SchedulerTask struct {
 	Body        string `json:"body"`
 	Timeout     int64  `json:"timeout"`
 	MaxRetries  int    `json:"maxRetries"`
+	Desc        string `json:"desc"`
 	Status      string `json:"status"`
 	CreateTime  string `json:"createTime"`
 }

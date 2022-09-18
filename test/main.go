@@ -13,7 +13,8 @@ func main() {
 
 	fmt.Println(s)
 	fmt.Println(er)
-	//c := cron.New(cron.WithSeconds())
+
+	cron.New(cron.WithSeconds())
 	////
 	////fmt.Println(123)
 	////

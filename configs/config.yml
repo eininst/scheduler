@@ -29,6 +29,7 @@ rs:
     blockTimeSecond: 20
     maxRetries: 3
     timeoutSecond: 300
+
 ---
 profile: test
 assets: /assets

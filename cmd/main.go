@@ -7,10 +7,15 @@ import (
 	"github.com/eininst/ninja"
 	"github.com/eininst/scheduler/api"
 	"github.com/eininst/scheduler/configs"
+	"github.com/eininst/scheduler/consumer"
 	"github.com/eininst/scheduler/internal/conf"
 	"github.com/eininst/scheduler/internal/service"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
+	"github.com/robfig/cron/v3"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -34,7 +39,26 @@ func main() {
 	})
 	app.Static("/assets", "./web/dist")
 
+	cronCli := cron.New(cron.WithSeconds())
+	ninja.Provide(cronCli)
+
 	ninja.Install(new(api.Router), app)
+
+	var csm consumer.Consumer
+	ninja.Install(&csm)
+
+	cronCli.Start()
+	go csm.Cli.Listen()
+
+	go func() {
+		quit := make(chan os.Signal)
+		signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+		<-quit
+
+		cronCli.Stop()
+		csm.Cli.Shutdown()
+		flog.Info("Graceful Shutdown")
+	}()
 
 	grace.Listen(app, ":8999")
 }

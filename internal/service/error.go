@@ -7,9 +7,10 @@ import (
 )
 
 const (
-	ERROR_PARAMETER      = 100
-	ERROR_DATA_NOT_FOUND = 1000
+	ERROR_PARAMETER = 100
 )
+
+var ERROR_DATA_NOT_FOUND = NewServiceError("数据不存在")
 
 type ServiceError struct {
 	Code    int         `json:"code"`

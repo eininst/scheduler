@@ -87,7 +87,15 @@ func (a *Sapi) Logout(c *fiber.Ctx) error {
 	cookie.Expires = time.Now().Add(-3 * time.Second)
 	c.Cookie(cookie)
 
-	return c.SendStatus(http.StatusOK)
+	return nil
+}
+
+func (a *Sapi) UserList(c *fiber.Ctx) error {
+	users, er := a.UserService.List(c.Context())
+	if er != nil {
+		return er
+	}
+	return c.JSON(users)
 }
 
 func (a *Sapi) TaskAdd(c *fiber.Ctx) error {
@@ -99,12 +107,19 @@ func (a *Sapi) TaskAdd(c *fiber.Ctx) error {
 	uid := c.Locals("userId").(int64)
 	t.UserId = uid
 
-	er = a.TaskService.Add(c.Context(), &t)
+	return a.TaskService.Add(c.Context(), &t)
+}
+
+func (a *Sapi) TaskUpdate(c *fiber.Ctx) error {
+	var t model.SchedulerTask
+	er := c.BodyParser(&t)
 	if er != nil {
 		return er
 	}
+	//uid := c.Locals("userId").(int64)
+	//t.UserId = uid
 
-	return c.SendStatus(http.StatusOK)
+	return a.TaskService.Update(c.Context(), &t)
 }
 
 func (a *Sapi) TaskPage(c *fiber.Ctx) error {
@@ -115,12 +130,25 @@ func (a *Sapi) TaskPage(c *fiber.Ctx) error {
 		return er
 	}
 
-	flog.Info(opt)
-
 	r, er := a.TaskService.PageByOption(c.Context(), &opt)
 	if er != nil {
 		return er
 	}
 
 	return c.JSON(r)
+}
+
+func (a *Sapi) TaskStart(c *fiber.Ctx) error {
+	id, _ := c.ParamsInt("id")
+	return a.TaskService.Start(c.Context(), int64(id))
+}
+
+func (a *Sapi) TaskStop(c *fiber.Ctx) error {
+	id, _ := c.ParamsInt("id")
+	return a.TaskService.Stop(c.Context(), int64(id))
+}
+
+func (a *Sapi) TaskDel(c *fiber.Ctx) error {
+	id, _ := c.ParamsInt("id")
+	return a.TaskService.Del(c.Context(), int64(id))
 }
