@@ -16,6 +16,9 @@ func Md5(value string) string {
 func FormatTime() string {
 	return time.Now().Format("2006.01.02 15:04:05")
 }
+func FormatTimeMill() string {
+	return time.Now().Format("2006.01.02 15:04:05.000")
+}
 
 func ConvertIds[T any](tlist []*T, key string) []int64 {
 	ids := []int64{}

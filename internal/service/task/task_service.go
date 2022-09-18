@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"github.com/eininst/flog"
 	"github.com/eininst/rs"
 	"github.com/eininst/scheduler/internal/model"
 	"github.com/eininst/scheduler/internal/service"
@@ -20,12 +21,16 @@ const (
 )
 
 type TaskService interface {
+	Run(ctx context.Context)
+
 	Add(ctx context.Context, task *model.SchedulerTask) error
 	Update(ctx context.Context, task *model.SchedulerTask) error
 	PageByOption(ctx context.Context, opt *types.TaskOption) (*types.Page[*types.TaskDTO], error)
 	Start(ctx context.Context, id int64) error
 	Stop(ctx context.Context, id int64) error
 	Del(ctx context.Context, id int64) error
+
+	AddExcute(ctx context.Context, taskExcute *model.SchedulerTaskExcute) error
 }
 type taskService struct {
 	parse cron.Parser
@@ -234,4 +239,30 @@ func (t *taskService) PageByOption(ctx context.Context, opt *types.TaskOption) (
 	}
 
 	return pg, nil
+}
+
+func (t *taskService) AddExcute(ctx context.Context, taskExcute *model.SchedulerTaskExcute) error {
+	session := t.DB.WithContext(ctx)
+	taskExcute.CreateTime = util.FormatTime()
+
+	err := session.Create(&taskExcute).Error
+	if err != nil {
+		return service.NewServiceError("创建任务记录失败")
+	}
+
+	return nil
+}
+
+func (ts *taskService) Run(ctx context.Context) {
+	var tasks []*model.SchedulerTask
+	ts.DB.WithContext(ctx).Where("status = ?", STATUS_RUN).Find(&tasks)
+
+	for _, t := range tasks {
+		er := ts.RsCli.Send("task_register", rs.H{
+			"task_id": t.Id,
+		})
+		if er != nil {
+			flog.Error(er)
+		}
+	}
 }

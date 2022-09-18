@@ -32,7 +32,7 @@ type SchedulerTask struct {
 type SchedulerTaskExcute struct {
 	Id         int64  `gorm:"primary_key" json:"id"`
 	UserId     int64  `json:"userId"`
-	TaskId     string `json:"taskId"`
+	TaskId     int64  `json:"taskId"`
 	TaskName   string `json:"taskName"`
 	TaskUrl    string `json:"taskUrl"`
 	TaskObj    string `json:"taskObj"`
@@ -40,6 +40,6 @@ type SchedulerTaskExcute struct {
 	Response   string `json:"response"`
 	StartTime  string `json:"start_time"`
 	EndTime    string `json:"end_time"`
-	Duration   int    `json:"duration"`
+	Duration   int64  `json:"duration"`
 	CreateTime string `json:"createTime"`
 }

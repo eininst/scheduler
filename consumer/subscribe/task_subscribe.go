@@ -8,6 +8,8 @@ import (
 	"github.com/eininst/rlock"
 	"github.com/eininst/rs"
 	"github.com/eininst/scheduler/internal/model"
+	"github.com/eininst/scheduler/internal/service/task"
+	"github.com/eininst/scheduler/internal/util"
 	"github.com/gofiber/fiber/v2"
 	"github.com/robfig/cron/v3"
 	"gorm.io/gorm"
@@ -36,6 +38,8 @@ type TaskSubscribe struct {
 	Rlock   *rlock.Rlock `inject:""`
 	DB      *gorm.DB     `inject:""`
 	CronCli *cron.Cron   `inject:""`
+
+	TaskService task.TaskService `inject:""`
 }
 
 func (ts *TaskSubscribe) Register(ctx *rs.Context) {
@@ -107,6 +111,17 @@ func (ts *TaskSubscribe) Request(ctx *rs.Context) {
 		return
 	}
 
+	texcute := &model.SchedulerTaskExcute{
+		UserId:    t.UserId,
+		TaskId:    t.Id,
+		TaskName:  t.Name,
+		TaskUrl:   t.Url,
+		TaskObj:   info,
+		StartTime: util.FormatTimeMill(),
+	}
+
+	startDuration := time.Now().UnixMilli()
+
 	cli := fiber.AcquireClient()
 
 	var agt *fiber.Agent
@@ -123,14 +138,28 @@ func (ts *TaskSubscribe) Request(ctx *rs.Context) {
 		flog.Error("无效的Method")
 		return
 	}
+
 	agt.BodyString(t.Body)
 	agt.Timeout(time.Second * time.Duration(t.Timeout))
 	//agt.ReadTimeout = time.Second * 3
 	agt.HostClient.MaxIdemponentCallAttempts = t.MaxRetries
 
 	code, body, errors := agt.Bytes()
+	if len(errors) > 0 {
+		elist := []string{}
+		for _, er := range errors {
+			elist = append(elist, er.Error())
+		}
+		estrs, _ := json.Marshal(elist)
+		texcute.Response = string(estrs)
+	} else {
+		texcute.Response = string(body)
+	}
 
-	flog.Info(code)
-	flog.Info(string(body))
-	flog.Info(errors)
+	texcute.Code = code
+
+	texcute.EndTime = util.FormatTimeMill()
+	texcute.Duration = time.Now().UnixMilli() - startDuration
+
+	_ = ts.TaskService.AddExcute(ctx, texcute)
 }

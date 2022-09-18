@@ -32,4 +32,5 @@ func (cs *Consumer) Init() {
 		Group:   gid(),
 		Handler: cs.Ts.Stop,
 	})
+
 }

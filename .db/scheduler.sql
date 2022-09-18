@@ -43,12 +43,12 @@ CREATE TABLE `scheduler_task`
 CREATE TABLE `scheduler_task_excute`
 (
     `id`          bigint(20) NOT NULL AUTO_INCREMENT,
-    `user_id`     bigint(20) DEFAULT '',
+    `user_id`     bigint(20) DEFAULT 0,
     `task_id`     bigint(20) DEFAULT 0,
     `task_name`   varchar(100)  DEFAULT '',
     `task_url`    varchar(128)  DEFAULT '',
     `task_obj`    varchar(2000) DEFAULT '',
-    `code`        int(10) DEFAULT '',
+    `code`        int(10) DEFAULT 0,
     `response`    varchar(2000) DEFAULT '',
     `start_time`  varchar(32)   DEFAULT '',
     `end_time`    varchar(32)   DEFAULT '',

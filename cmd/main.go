@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	grace "github.com/eininst/fiber-prefork-grace"
 	"github.com/eininst/flog"
@@ -10,12 +11,10 @@ import (
 	"github.com/eininst/scheduler/consumer"
 	"github.com/eininst/scheduler/internal/conf"
 	"github.com/eininst/scheduler/internal/service"
+	"github.com/eininst/scheduler/internal/service/task"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
 	"github.com/robfig/cron/v3"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 )
 
@@ -29,8 +28,29 @@ func init() {
 
 }
 
+func setup() {
+	var s struct {
+		TaskService task.TaskService `inject:""`
+	}
+	ninja.Populate(&s)
+	s.TaskService.Run(context.Background())
+}
+
 func main() {
-	//fiber.MIMEApplicationForm
+	//cron
+	cronCli := cron.New(cron.WithSeconds())
+	ninja.Populate(cronCli)
+	cronCli.Start()
+
+	// consumer
+	var csm consumer.Consumer
+	ninja.Install(&csm)
+	go csm.Cli.Listen()
+
+	//task run...
+	setup()
+
+	//app
 	engine := html.New("./web/views", ".html")
 	app := fiber.New(fiber.Config{
 		Views:        engine,
@@ -38,27 +58,12 @@ func main() {
 		ErrorHandler: service.ErrorHandler,
 	})
 	app.Static("/assets", "./web/dist")
-
-	cronCli := cron.New(cron.WithSeconds())
-	ninja.Provide(cronCli)
-
 	ninja.Install(new(api.Router), app)
 
-	var csm consumer.Consumer
-	ninja.Install(&csm)
-
-	cronCli.Start()
-	go csm.Cli.Listen()
-
-	go func() {
-		quit := make(chan os.Signal)
-		signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
-		<-quit
-
-		cronCli.Stop()
-		csm.Cli.Shutdown()
-		flog.Info("Graceful Shutdown")
-	}()
-
+	//listen
 	grace.Listen(app, ":8999")
+
+	//grace stop
+	cronCli.Stop()
+	csm.Cli.Shutdown()
 }
