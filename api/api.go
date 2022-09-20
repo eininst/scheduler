@@ -32,12 +32,16 @@ func (a *Sapi) Index(c *fiber.Ctx) error {
 			return c.Redirect("/login", http.StatusTemporaryRedirect)
 		}
 
-		var u model.SchedulerUser
+		var u model.User
 		er := a.Jwt.ParseToken(token, &u)
 		if er != nil {
 			return er
 		}
 
+		nu, er := a.UserService.GetById(c.Context(), u.Id)
+		if er == nil {
+			u = *nu
+		}
 		return c.Render("index", fiber.Map{
 			"user":   u,
 			"assets": configs.Get("assets"),
@@ -90,6 +94,16 @@ func (a *Sapi) Logout(c *fiber.Ctx) error {
 	return nil
 }
 
+func (a *Sapi) UserAdd(c *fiber.Ctx) error {
+	var u model.User
+	er := c.BodyParser(&u)
+	if er != nil {
+		return er
+	}
+
+	return a.UserService.Add(c.Context(), &u)
+}
+
 func (a *Sapi) UserList(c *fiber.Ctx) error {
 	users, er := a.UserService.List(c.Context())
 	if er != nil {
@@ -99,7 +113,7 @@ func (a *Sapi) UserList(c *fiber.Ctx) error {
 }
 
 func (a *Sapi) TaskAdd(c *fiber.Ctx) error {
-	var t model.SchedulerTask
+	var t model.Task
 	er := c.BodyParser(&t)
 	if er != nil {
 		return er
@@ -111,7 +125,7 @@ func (a *Sapi) TaskAdd(c *fiber.Ctx) error {
 }
 
 func (a *Sapi) TaskUpdate(c *fiber.Ctx) error {
-	var t model.SchedulerTask
+	var t model.Task
 	er := c.BodyParser(&t)
 	if er != nil {
 		return er
@@ -151,4 +165,68 @@ func (a *Sapi) TaskStop(c *fiber.Ctx) error {
 func (a *Sapi) TaskDel(c *fiber.Ctx) error {
 	id, _ := c.ParamsInt("id")
 	return a.TaskService.Del(c.Context(), int64(id))
+}
+
+func (a *Sapi) TaskUpdateUser(c *fiber.Ctx) error {
+	var changeUser types.TaskChangeUser
+
+	er := c.BodyParser(&changeUser)
+	if er != nil {
+		return er
+	}
+	count, er := a.TaskService.UpdateUser(c.Context(), &changeUser)
+	if er != nil {
+		return er
+	}
+	return c.JSON(fiber.Map{
+		"count": count,
+	})
+}
+
+func (a *Sapi) StartBatch(c *fiber.Ctx) error {
+	var tbatch types.TaskBatch
+
+	er := c.BodyParser(&tbatch)
+	if er != nil {
+		return er
+	}
+	count, er := a.TaskService.StartBatch(c.Context(), &tbatch)
+	if er != nil {
+		return er
+	}
+	return c.JSON(fiber.Map{
+		"count": count,
+	})
+}
+
+func (a *Sapi) StopBatch(c *fiber.Ctx) error {
+	var tbatch types.TaskBatch
+
+	er := c.BodyParser(&tbatch)
+	if er != nil {
+		return er
+	}
+	count, er := a.TaskService.StopBatch(c.Context(), &tbatch)
+	if er != nil {
+		return er
+	}
+	return c.JSON(fiber.Map{
+		"count": count,
+	})
+}
+
+func (a *Sapi) DelBatch(c *fiber.Ctx) error {
+	var tbatch types.TaskBatch
+
+	er := c.BodyParser(&tbatch)
+	if er != nil {
+		return er
+	}
+	count, er := a.TaskService.DelBatch(c.Context(), &tbatch)
+	if er != nil {
+		return er
+	}
+	return c.JSON(fiber.Map{
+		"count": count,
+	})
 }

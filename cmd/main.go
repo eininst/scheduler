@@ -8,7 +8,6 @@ import (
 	"github.com/eininst/ninja"
 	"github.com/eininst/scheduler/api"
 	"github.com/eininst/scheduler/configs"
-	"github.com/eininst/scheduler/consumer"
 	"github.com/eininst/scheduler/internal/conf"
 	"github.com/eininst/scheduler/internal/service"
 	"github.com/eininst/scheduler/internal/service/task"
@@ -25,30 +24,25 @@ func init() {
 	configs.SetConfig("./configs/config.yml")
 
 	conf.Inject()
-
+	ninja.Populate()
 }
 
-func setup() {
+func cronSetup() *cron.Cron {
 	var s struct {
 		TaskService task.TaskService `inject:""`
+		CronCli     *cron.Cron       `inject:""`
 	}
 	ninja.Populate(&s)
-	s.TaskService.Run(context.Background())
+
+	s.CronCli.Start()
+	s.TaskService.RunTask(context.Background())
+
+	return s.CronCli
 }
 
 func main() {
-	//cron
-	cronCli := cron.New(cron.WithSeconds())
-	ninja.Populate(cronCli)
-	cronCli.Start()
-
-	// consumer
-	var csm consumer.Consumer
-	ninja.Install(&csm)
-	go csm.Cli.Listen()
-
 	//task run...
-	setup()
+	cronCli := cronSetup()
 
 	//app
 	engine := html.New("./web/views", ".html")
@@ -63,7 +57,6 @@ func main() {
 	//listen
 	grace.Listen(app, ":8999")
 
-	//grace stop
+	//cron grace stop
 	cronCli.Stop()
-	csm.Cli.Shutdown()
 }

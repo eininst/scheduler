@@ -38,3 +38,23 @@ type TaskDTO struct {
 	Status       string `json:"status"`
 	CreateTime   string `json:"createTime"`
 }
+
+type TaskChangeUser struct {
+	UserId  int64   `json:"userId" form:"userId"`
+	TaskIds []int64 `json:"taskIds" form:"taskIds"`
+}
+
+type TaskBatch struct {
+	TaskIds []int64 `json:"taskIds" form:"taskIds"`
+}
+
+type TaskExcuteOption struct {
+	*PageReq
+	UserId    int64  `json:"userId" form:"userId"`
+	TaskId    int64  `json:"taskId" form:"taskId"`
+	TaskName  string `json:"taskName" form:"taskName"`
+	TaskGroup string `json:"taskGroup" form:"taskGroup"`
+	Code      int    `json:"code" form:"code"`
+	StartTime string `json:"start_time" form:"start_time"`
+	EndTime   string `json:"end_time" form:"end_time"`
+}

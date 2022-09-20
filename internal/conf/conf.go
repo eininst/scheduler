@@ -8,6 +8,7 @@ import (
 	"github.com/eininst/scheduler/internal/data"
 	"github.com/eininst/scheduler/internal/service/task"
 	"github.com/eininst/scheduler/internal/service/user"
+	"github.com/robfig/cron/v3"
 )
 
 func Inject() {
@@ -21,6 +22,9 @@ func Inject() {
 	ninja.Provide(db)
 
 	ninja.Provide(jwt.New(configs.Get("secretKey").String()))
+
+	cronCli := cron.New(cron.WithSeconds())
+	ninja.Provide(cronCli)
 
 	//inject services
 	ninja.Provide(user.NewService())

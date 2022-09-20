@@ -13,7 +13,8 @@ CREATE TABLE `scheduler_user`
     KEY           `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-insert into scheduler_user(name,password, real_name, role,status) values('admin','96e79218965eb72c92a549dd5a330112', 'admin','admin','ok');
+insert into scheduler_user(name, password, real_name, role, status)
+values ('admin', '96e79218965eb72c92a549dd5a330112', 'admin', 'admin', 'ok');
 
 CREATE TABLE `scheduler_task`
 (
@@ -28,7 +29,7 @@ CREATE TABLE `scheduler_task`
     `body`         varchar(1024) DEFAULT '',
     `timeout`      int(10) DEFAULT 0,
     `max_retries`  int(10) DEFAULT 0,
-    `desc`        varchar(2048)   default '',
+    `desc`         varchar(2048) default '',
     `status`       varchar(32)   DEFAULT '',
     `create_time`  varchar(20)   DEFAULT '',
     PRIMARY KEY (`id`),

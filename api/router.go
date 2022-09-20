@@ -3,17 +3,15 @@ package api
 import (
 	"errors"
 	"github.com/eininst/go-jwt"
-	"github.com/eininst/rs"
 	"github.com/eininst/scheduler/internal/model"
 	"github.com/eininst/scheduler/internal/service"
 	"github.com/gofiber/fiber/v2"
 )
 
 type Router struct {
-	Jwt   *jwt.Jwt   `inject:""`
-	App   *fiber.App `inject:""`
-	Sapi  *Sapi      `inject:""`
-	RsCli rs.Client  `inject:""`
+	Jwt  *jwt.Jwt   `inject:""`
+	App  *fiber.App `inject:""`
+	Sapi *Sapi      `inject:""`
 }
 
 func (r *Router) RequireLogin(c *fiber.Ctx) error {
@@ -21,7 +19,7 @@ func (r *Router) RequireLogin(c *fiber.Ctx) error {
 	if token == "" {
 		return service.NewServiceError("用户未登陆")
 	}
-	var user model.SchedulerUser
+	var user model.User
 	er := r.Jwt.ParseToken(token, &user)
 	if errors.Is(er, jwt.Expired) {
 		return service.NewServiceError("token is expired")
@@ -33,11 +31,6 @@ func (r *Router) RequireLogin(c *fiber.Ctx) error {
 }
 
 func (r *Router) Init() {
-	r.App.Get("/test", func(ctx *fiber.Ctx) error {
-		return r.RsCli.Send("task_add", rs.H{
-			"task_id": int64(123),
-		})
-	})
 	r.App.Post("/api/login", r.Sapi.Login)
 	r.App.Post("/api/logout", r.Sapi.Logout)
 
@@ -51,6 +44,11 @@ func (r *Router) Init() {
 	g.Post("/task/start/:id", r.Sapi.TaskStart)
 	g.Post("/task/stop/:id", r.Sapi.TaskStop)
 	g.Delete("/task/del/:id", r.Sapi.TaskDel)
+
+	g.Post("/task/batch/change/user", r.Sapi.TaskUpdateUser)
+	g.Post("/task/batch/start", r.Sapi.StartBatch)
+	g.Post("/task/batch/stop", r.Sapi.StopBatch)
+	g.Post("/task/batch/del", r.Sapi.DelBatch)
 
 	r.App.Get("/*", r.Sapi.Index)
 }

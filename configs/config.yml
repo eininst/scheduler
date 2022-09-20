@@ -1,6 +1,8 @@
 app: fastgo
 port: 8001
 
+tablePrefix: "scheduler_"
+
 ---
 profile: dev
 
