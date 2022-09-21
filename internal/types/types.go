@@ -54,7 +54,32 @@ type TaskExcuteOption struct {
 	TaskId    int64  `json:"taskId" form:"taskId"`
 	TaskName  string `json:"taskName" form:"taskName"`
 	TaskGroup string `json:"taskGroup" form:"taskGroup"`
-	Code      int    `json:"code" form:"code"`
+	Status    string `json:"status" form:"status"`
 	StartTime string `json:"start_time" form:"start_time"`
 	EndTime   string `json:"end_time" form:"end_time"`
+}
+
+type TaskExcuteDTO struct {
+	Id           int64  `gorm:"primary_key" json:"id"`
+	UserId       int64  `json:"userId" `
+	UserName     string `json:"userName" `
+	UserRealName string `json:"userRealName" `
+	UserHead     string `json:"userHead" `
+	TaskId       int64  `json:"taskId" `
+	TaskName     string `json:"taskName"`
+	TaskGroup    string `json:"taskGroup"`
+	TaskUrl      string `json:"taskUrl"`
+	TaskObj      string `json:"taskObj"`
+	Code         int    `json:"code"`
+	Response     string `json:"response"`
+	StartTime    string `json:"start_time"`
+	EndTime      string `json:"end_time"`
+	Duration     int64  `json:"duration"`
+	CreateTime   string `json:"createTime"`
+}
+
+type UserOption struct {
+	Name     string `json:"name" form:"name"`
+	RealName string `json:"realName" form:"realName"`
+	Status   string `json:"status" form:"status"`
 }

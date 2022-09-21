@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/eininst/flog"
 	"github.com/eininst/rlock"
+	"github.com/eininst/rs"
 	"github.com/eininst/scheduler/internal/model"
 	"github.com/eininst/scheduler/internal/service"
 	"github.com/eininst/scheduler/internal/service/user"
@@ -37,28 +38,28 @@ type TaskService interface {
 	Add(ctx context.Context, task *model.Task) error
 	Update(ctx context.Context, task *model.Task) error
 	PageByOption(ctx context.Context, opt *types.TaskOption) (*types.Page[*types.TaskDTO], error)
-	Start(ctx context.Context, id int64) error
-	Stop(ctx context.Context, id int64) error
-	Del(ctx context.Context, id int64) error
+	Start(ctx context.Context, userId int64, id int64) error
+	Stop(ctx context.Context, userId int64, id int64) error
+	Del(ctx context.Context, userId int64, id int64) error
 
 	UpdateUser(ctx context.Context, tcu *types.TaskChangeUser) (int64, error)
-	StartBatch(ctx context.Context, tbatch *types.TaskBatch) (int64, error)
-	StopBatch(ctx context.Context, tbatch *types.TaskBatch) (int64, error)
-	DelBatch(ctx context.Context, tbatch *types.TaskBatch) (int64, error)
+	StartBatch(ctx context.Context, userId int64, tbatch *types.TaskBatch) (int64, error)
+	StopBatch(ctx context.Context, userId int64, tbatch *types.TaskBatch) (int64, error)
+	DelBatch(ctx context.Context, userId int64, tbatch *types.TaskBatch) (int64, error)
 
 	AddExcute(ctx context.Context, taskExcute *model.TaskExcute) error
 
-	texcutePageByOption(ctx context.Context, opt *types.TaskExcuteOption) (*types.Page[*model.TaskExcute], error)
+	ExcutePageByOption(ctx context.Context, opt *types.TaskExcuteOption) (*types.Page[*types.TaskExcuteDTO], error)
 }
 type taskService struct {
-	parse   cron.Parser
-	mux     *sync.Mutex
-	TaskMap map[int64]cron.EntryID
-	DB      *gorm.DB      `inject:""`
-	Rcli    *redis.Client `inject:""`
-	CronCli *cron.Cron    `inject:""`
-	Rlock   *rlock.Rlock  `inject:""`
-
+	parse       cron.Parser
+	mux         *sync.Mutex
+	TaskMap     map[int64]cron.EntryID
+	DB          *gorm.DB         `inject:""`
+	Rcli        *redis.Client    `inject:""`
+	CronCli     *cron.Cron       `inject:""`
+	Rlock       *rlock.Rlock     `inject:""`
+	RsClient    rs.Client        `inject:""`
 	UserService user.UserService `inject:""`
 }
 
@@ -80,6 +81,7 @@ func (t *taskService) Add(ctx context.Context, task *model.Task) error {
 	if task.Timeout == 0 {
 		task.Timeout = 15
 	}
+
 	task.Status = STATUS_STOP
 	task.CreateTime = util.FormatTime()
 
@@ -152,14 +154,14 @@ func (t *taskService) UpdateUser(ctx context.Context, tcu *types.TaskChangeUser)
 	return count, nil
 }
 
-func (t *taskService) StartBatch(ctx context.Context, tbatch *types.TaskBatch) (int64, error) {
+func (t *taskService) StartBatch(ctx context.Context, userId int64, tbatch *types.TaskBatch) (int64, error) {
 	if len(tbatch.TaskIds) == 0 {
 		return 0, service.NewServiceError("请选择任务")
 	}
 
 	count := int64(0)
 	for _, id := range tbatch.TaskIds {
-		er := t.Start(ctx, id)
+		er := t.Start(ctx, userId, id)
 		if er != nil {
 			continue
 		}
@@ -168,14 +170,14 @@ func (t *taskService) StartBatch(ctx context.Context, tbatch *types.TaskBatch) (
 	return count, nil
 }
 
-func (t *taskService) StopBatch(ctx context.Context, tbatch *types.TaskBatch) (int64, error) {
+func (t *taskService) StopBatch(ctx context.Context, userId int64, tbatch *types.TaskBatch) (int64, error) {
 	if len(tbatch.TaskIds) == 0 {
 		return 0, service.NewServiceError("请选择任务")
 	}
 
 	count := int64(0)
 	for _, id := range tbatch.TaskIds {
-		er := t.Stop(ctx, id)
+		er := t.Stop(ctx, userId, id)
 		if er != nil {
 			continue
 		}
@@ -184,14 +186,14 @@ func (t *taskService) StopBatch(ctx context.Context, tbatch *types.TaskBatch) (i
 	return count, nil
 }
 
-func (t *taskService) DelBatch(ctx context.Context, tbatch *types.TaskBatch) (int64, error) {
+func (t *taskService) DelBatch(ctx context.Context, userId int64, tbatch *types.TaskBatch) (int64, error) {
 	if len(tbatch.TaskIds) == 0 {
 		return 0, service.NewServiceError("请选择任务")
 	}
 
 	count := int64(0)
 	for _, id := range tbatch.TaskIds {
-		er := t.Del(ctx, id)
+		er := t.Del(ctx, userId, id)
 		if er != nil {
 			continue
 		}
@@ -200,20 +202,30 @@ func (t *taskService) DelBatch(ctx context.Context, tbatch *types.TaskBatch) (in
 	return count, nil
 }
 
-func (ts *taskService) Start(ctx context.Context, id int64) error {
+func (ts *taskService) Start(ctx context.Context, userId int64, id int64) error {
 	ok, cancel := ts.Rlock.TryAcquire(fmt.Sprintf("task:%v", id), time.Second*10)
 	defer cancel()
 	if !ok {
 		return service.NewServiceError("启动失败, 当前操作有其他人正在进行操作")
 	}
 
-	var t model.Task
-
 	sess := ts.DB.WithContext(ctx)
+
+	var t model.Task
 	sess.First(&t, id)
 	if t.Id == 0 {
 		return service.ERROR_DATA_NOT_FOUND
 	}
+
+	var u model.User
+	sess.First(&u, userId)
+
+	if u.Role != user.ROLE_ADMIN {
+		if u.Id != t.UserId {
+			return service.NewServiceError("启动失败, 权限不足")
+		}
+	}
+
 	if t.Status == STATUS_RUN {
 		return service.NewServiceError("任务已启动，请勿重复操作")
 	}
@@ -230,7 +242,7 @@ func (ts *taskService) Start(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (ts *taskService) Stop(ctx context.Context, id int64) error {
+func (ts *taskService) Stop(ctx context.Context, userId int64, id int64) error {
 	ok, cancel := ts.Rlock.TryAcquire(fmt.Sprintf("task:%v", id), time.Second*10)
 	defer cancel()
 	if !ok {
@@ -244,6 +256,16 @@ func (ts *taskService) Stop(ctx context.Context, id int64) error {
 	if t.Id == 0 {
 		return service.ERROR_DATA_NOT_FOUND
 	}
+
+	var u model.User
+	sess.First(&u, userId)
+
+	if u.Role != user.ROLE_ADMIN {
+		if u.Id != t.UserId {
+			return service.NewServiceError("停止失败, 权限不足")
+		}
+	}
+
 	if t.Status == STATUS_STOP {
 		return service.NewServiceError("任务已停止，请勿重复操作")
 	}
@@ -257,7 +279,7 @@ func (ts *taskService) Stop(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (ts *taskService) Del(ctx context.Context, id int64) error {
+func (ts *taskService) Del(ctx context.Context, userId int64, id int64) error {
 	ok, cancel := ts.Rlock.TryAcquire(fmt.Sprintf("task:%v", id), time.Second*10)
 	defer cancel()
 	if !ok {
@@ -272,6 +294,15 @@ func (ts *taskService) Del(ctx context.Context, id int64) error {
 		return service.ERROR_DATA_NOT_FOUND
 	}
 
+	var u model.User
+	sess.First(&u, userId)
+
+	if u.Role != user.ROLE_ADMIN {
+		if u.Id != t.UserId {
+			return service.NewServiceError("删除失败, 权限不足")
+		}
+	}
+
 	er := sess.Delete(&t).Error
 	if er != nil {
 		return service.NewServiceError("删除失败")
@@ -283,11 +314,9 @@ func (ts *taskService) Del(ctx context.Context, id int64) error {
 }
 
 func (ts *taskService) runTask(ctx context.Context, t *model.Task) error {
-	flog.Info(t.Spec)
 	eid, er := ts.CronCli.AddFunc(t.Spec, func() {
 		ts.do(ctx, t)
 	})
-	flog.Info(eid)
 	if er != nil {
 		return er
 	}
@@ -390,7 +419,6 @@ func (ts *taskService) RunTask(ctx context.Context) {
 
 	for _, t := range tasks {
 		er := ts.runTask(ctx, t)
-		flog.Info(er)
 		if er != nil {
 			flog.Fatal(er)
 		}
@@ -446,27 +474,24 @@ func (ts *taskService) do(ctx context.Context, t *model.Task) {
 		estrs, _ := json.Marshal(elist)
 		texcute.Response = string(estrs)
 	} else {
-		texcute.Response = util.Unicode2utf8(body)
+		sbody := body
+		if len(sbody) > 500 {
+			sbody = sbody[0:500]
+		}
+		texcute.Response = util.Unicode2utf8(sbody)
 	}
 
 	texcute.Code = code
 	texcute.EndTime = util.FormatTimeMill()
 	texcute.Duration = time.Now().UnixMilli() - startDuration
 
-	_ = ts.AddExcute(ctx, texcute)
-
-	if code != 200 {
-		u, err := ts.UserService.GetById(ctx, t.UserId)
-		if err != nil {
-			return
-		}
-		if u.Mail != "" {
-			go ts.TasktAlarm(ctx, u.Mail, "错误报警")
-		}
-	}
+	texcuteStr, _ := json.Marshal(texcute)
+	_ = ts.RsClient.Send("cron_task_log", rs.H{
+		"data": string(texcuteStr),
+	})
 }
 
-func (t *taskService) texcutePageByOption(ctx context.Context, opt *types.TaskExcuteOption) (*types.Page[*model.TaskExcute], error) {
+func (t *taskService) ExcutePageByOption(ctx context.Context, opt *types.TaskExcuteOption) (*types.Page[*types.TaskExcuteDTO], error) {
 	var total int64
 	var tasks []*model.TaskExcute
 
@@ -476,10 +501,10 @@ func (t *taskService) texcutePageByOption(ctx context.Context, opt *types.TaskEx
 	if offset < 0 {
 		offset = 0
 	}
-	q := sess.Model(&model.Task{})
+	q := sess.Model(&model.TaskExcute{})
 
-	if opt.Code != 0 {
-		if opt.Code == 1 {
+	if opt.Status != "" {
+		if opt.Status == "ok" {
 			q = q.Where("code = 200")
 		} else {
 			q = q.Where("code != 200")
@@ -487,11 +512,11 @@ func (t *taskService) texcutePageByOption(ctx context.Context, opt *types.TaskEx
 	}
 
 	if opt.TaskGroup != "" {
-		q = q.Where("taskGroup LIKE ?", "%"+opt.TaskGroup+"%")
+		q = q.Where("task_group LIKE ?", "%"+opt.TaskGroup+"%")
 	}
 
 	if opt.TaskName != "" {
-		q = q.Where("`taskName` LIKE ?", "%"+opt.TaskName+"%")
+		q = q.Where("`task_name` LIKE ?", "%"+opt.TaskName+"%")
 	}
 
 	if opt.UserId != 0 {
@@ -503,19 +528,40 @@ func (t *taskService) texcutePageByOption(ctx context.Context, opt *types.TaskEx
 	}
 
 	if opt.StartTime != "" {
-		q = q.Where("create_time > ?", opt.StartTime)
+		q = q.Where("create_time > ?", fmt.Sprintf("%s 00:00:0", opt.StartTime))
 	}
 
 	if opt.EndTime != "" {
-		q = q.Where("create_time < ?", opt.EndTime)
+		q = q.Where("create_time < ?", fmt.Sprintf("%s 23:59:59", opt.EndTime))
 	}
 
 	q.Count(&total)
 	q.Limit(opt.PageSize).Offset(offset).Order("id desc").Find(&tasks)
 
-	pg := &types.Page[*model.TaskExcute]{
+	taskDtos := []*types.TaskExcuteDTO{}
+
+	err := copier.Copy(&taskDtos, &tasks)
+	if err != nil {
+		return nil, err
+	}
+
+	userIds := util.ConvertIds(tasks, "UserId")
+
+	var userList []*model.User
+	sess.Find(&userList, userIds)
+	userMap := util.ConvertIdMap(userList)
+
+	for _, t := range taskDtos {
+		if v, ok := userMap[t.UserId]; ok {
+			t.UserName = v.Name
+			t.UserRealName = v.RealName
+			t.UserHead = v.Head
+		}
+	}
+
+	pg := &types.Page[*types.TaskExcuteDTO]{
 		Total: total,
-		List:  tasks,
+		List:  taskDtos,
 	}
 
 	return pg, nil

@@ -9,6 +9,7 @@ import (
 	"github.com/eininst/scheduler/api"
 	"github.com/eininst/scheduler/configs"
 	"github.com/eininst/scheduler/internal/conf"
+	"github.com/eininst/scheduler/internal/consumer"
 	"github.com/eininst/scheduler/internal/service"
 	"github.com/eininst/scheduler/internal/service/task"
 	"github.com/gofiber/fiber/v2"
@@ -40,9 +41,24 @@ func cronSetup() *cron.Cron {
 	return s.CronCli
 }
 
+func waitCron(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			time.Sleep(time.Millisecond * 10)
+		}
+	}
+}
 func main() {
 	//task run...
 	cronCli := cronSetup()
+
+	var c consumer.Consumer
+	ninja.Install(&c)
+
+	go c.RsClient.Listen()
 
 	//app
 	engine := html.New("./web/views", ".html")
@@ -58,5 +74,7 @@ func main() {
 	grace.Listen(app, ":8999")
 
 	//cron grace stop
-	cronCli.Stop()
+	ctx := cronCli.Stop()
+	waitCron(ctx)
+
 }

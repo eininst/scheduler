@@ -104,11 +104,51 @@ func (a *Sapi) UserAdd(c *fiber.Ctx) error {
 	return a.UserService.Add(c.Context(), &u)
 }
 
-func (a *Sapi) UserList(c *fiber.Ctx) error {
-	users, er := a.UserService.List(c.Context())
+func (a *Sapi) UserUpdate(c *fiber.Ctx) error {
+	var u model.User
+	er := c.BodyParser(&u)
 	if er != nil {
 		return er
 	}
+
+	return a.UserService.Update(c.Context(), &u)
+}
+
+func (a *Sapi) UserEnable(c *fiber.Ctx) error {
+	id, er := c.ParamsInt("id")
+	if er != nil {
+		return er
+	}
+	return a.UserService.Enable(c.Context(), int64(id))
+}
+
+func (a *Sapi) UserDisable(c *fiber.Ctx) error {
+	id, er := c.ParamsInt("id")
+	if er != nil {
+		return er
+	}
+	return a.UserService.Disable(c.Context(), int64(id))
+}
+
+func (a *Sapi) UserDel(c *fiber.Ctx) error {
+	id, er := c.ParamsInt("id")
+	if er != nil {
+		return er
+	}
+	return a.UserService.Delete(c.Context(), int64(id))
+}
+
+func (a *Sapi) UserList(c *fiber.Ctx) error {
+	var opt types.UserOption
+	er := c.QueryParser(&opt)
+	if er != nil {
+		return er
+	}
+	users, er := a.UserService.List(c.Context(), &opt)
+	if er != nil {
+		return er
+	}
+
 	return c.JSON(users)
 }
 
@@ -154,17 +194,20 @@ func (a *Sapi) TaskPage(c *fiber.Ctx) error {
 
 func (a *Sapi) TaskStart(c *fiber.Ctx) error {
 	id, _ := c.ParamsInt("id")
-	return a.TaskService.Start(c.Context(), int64(id))
+	uid := c.Locals("userId").(int64)
+	return a.TaskService.Start(c.Context(), uid, int64(id))
 }
 
 func (a *Sapi) TaskStop(c *fiber.Ctx) error {
 	id, _ := c.ParamsInt("id")
-	return a.TaskService.Stop(c.Context(), int64(id))
+	uid := c.Locals("userId").(int64)
+	return a.TaskService.Stop(c.Context(), uid, int64(id))
 }
 
 func (a *Sapi) TaskDel(c *fiber.Ctx) error {
 	id, _ := c.ParamsInt("id")
-	return a.TaskService.Del(c.Context(), int64(id))
+	uid := c.Locals("userId").(int64)
+	return a.TaskService.Del(c.Context(), uid, int64(id))
 }
 
 func (a *Sapi) TaskUpdateUser(c *fiber.Ctx) error {
@@ -190,7 +233,8 @@ func (a *Sapi) StartBatch(c *fiber.Ctx) error {
 	if er != nil {
 		return er
 	}
-	count, er := a.TaskService.StartBatch(c.Context(), &tbatch)
+	uid := c.Locals("userId").(int64)
+	count, er := a.TaskService.StartBatch(c.Context(), uid, &tbatch)
 	if er != nil {
 		return er
 	}
@@ -206,7 +250,8 @@ func (a *Sapi) StopBatch(c *fiber.Ctx) error {
 	if er != nil {
 		return er
 	}
-	count, er := a.TaskService.StopBatch(c.Context(), &tbatch)
+	uid := c.Locals("userId").(int64)
+	count, er := a.TaskService.StopBatch(c.Context(), uid, &tbatch)
 	if er != nil {
 		return er
 	}
@@ -222,11 +267,26 @@ func (a *Sapi) DelBatch(c *fiber.Ctx) error {
 	if er != nil {
 		return er
 	}
-	count, er := a.TaskService.DelBatch(c.Context(), &tbatch)
+	uid := c.Locals("userId").(int64)
+	count, er := a.TaskService.DelBatch(c.Context(), uid, &tbatch)
 	if er != nil {
 		return er
 	}
 	return c.JSON(fiber.Map{
 		"count": count,
 	})
+}
+
+func (a *Sapi) ExcutePage(c *fiber.Ctx) error {
+	var opt types.TaskExcuteOption
+
+	er := c.QueryParser(&opt)
+	if er != nil {
+		return er
+	}
+	page, er := a.TaskService.ExcutePageByOption(c.Context(), &opt)
+	if er != nil {
+		return er
+	}
+	return c.JSON(page)
 }
