@@ -7,7 +7,6 @@ import (
 	"github.com/eininst/scheduler/internal/model"
 	"github.com/eininst/scheduler/internal/service/task"
 	"github.com/eininst/scheduler/internal/service/user"
-	"time"
 )
 
 type Consumer struct {
@@ -18,10 +17,7 @@ type Consumer struct {
 
 func (c *Consumer) Init() {
 	c.RsClient.Receive(rs.Rctx{
-		Stream:     "cron_task_log",
-		MaxRetries: rs.Int64(1),
-		Work:       rs.Int(10),
-		Timeout:    time.Second * 15,
+		Stream: "cron_task_log",
 		Handler: func(ctx *rs.Context) {
 			defer ctx.Ack()
 			var excute model.TaskExcute
@@ -46,10 +42,7 @@ func (c *Consumer) Init() {
 	})
 
 	c.RsClient.Receive(rs.Rctx{
-		Stream:     "cron_task_alarm",
-		MaxRetries: rs.Int64(1),
-		Work:       rs.Int(10),
-		Timeout:    time.Second * 15,
+		Stream: "cron_task_alarm",
 		Handler: func(ctx *rs.Context) {
 			defer ctx.Ack()
 			flog.Info(ctx.Msg.Values)
