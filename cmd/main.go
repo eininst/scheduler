@@ -38,6 +38,12 @@ func cronSetup() *cron.Cron {
 	s.CronCli.Start()
 	s.TaskService.RunTask(context.Background())
 
+	go func() {
+		for {
+			time.Sleep(time.Minute * 10)
+			s.TaskService.CleanLog(context.TODO(), 10)
+		}
+	}()
 	return s.CronCli
 }
 

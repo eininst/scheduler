@@ -65,7 +65,7 @@ type TaskExcute struct {
 	StartTime  string `json:"start_time" gorm:"type:varchar(32);index;default:''"`
 	EndTime    string `json:"end_time" gorm:"type:varchar(32);index;default:''"`
 	Duration   int64  `json:"duration" gorm:"type:int;index;default:0"`
-	CreateTime string `json:"createTime" gorm:"type:varchar(32);default:''"`
+	CreateTime string `json:"createTime" gorm:"type:varchar(32);index;default:''"`
 }
 
 func (this *TaskExcute) TableName() string {

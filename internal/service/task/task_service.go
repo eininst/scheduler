@@ -36,7 +36,7 @@ type TaskService interface {
 	RunTask(ctx context.Context)
 
 	Add(ctx context.Context, task *model.Task) error
-	Update(ctx context.Context, task *model.Task) error
+	Update(ctx context.Context, userId int64, task *model.Task) error
 	PageByOption(ctx context.Context, opt *types.TaskOption) (*types.Page[*types.TaskDTO], error)
 	Start(ctx context.Context, userId int64, id int64) error
 	Stop(ctx context.Context, userId int64, id int64) error
@@ -50,6 +50,8 @@ type TaskService interface {
 	AddExcute(ctx context.Context, taskExcute *model.TaskExcute) error
 
 	ExcutePageByOption(ctx context.Context, opt *types.TaskExcuteOption) (*types.Page[*types.TaskExcuteDTO], error)
+
+	CleanLog(ctx context.Context, day int64)
 }
 type taskService struct {
 	parse       cron.Parser
@@ -101,7 +103,7 @@ func (t *taskService) Add(ctx context.Context, task *model.Task) error {
 	return nil
 }
 
-func (t *taskService) Update(ctx context.Context, task *model.Task) error {
+func (t *taskService) Update(ctx context.Context, userId int64, task *model.Task) error {
 	session := t.DB.WithContext(ctx)
 
 	var _task model.Task
@@ -110,10 +112,23 @@ func (t *taskService) Update(ctx context.Context, task *model.Task) error {
 		return service.ERROR_DATA_NOT_FOUND
 	}
 
+	var u model.User
+	session.First(&u, userId)
+	if u.Role != user.ROLE_ADMIN {
+		if u.Id != _task.UserId {
+			return service.NewServiceError("修改失败, 权限不足")
+		}
+	}
+
+	if _task.Status == STATUS_RUN {
+		return service.NewServiceError("任务处于运行中，修改失败")
+	}
+
 	_, er := t.parse.Parse(task.Spec)
 	if er != nil {
 		return service.NewServiceError("无效的Cron表达式")
 	}
+
 	if task.Timeout == 0 {
 		task.Timeout = 15
 	}
@@ -425,8 +440,11 @@ func (ts *taskService) RunTask(ctx context.Context) {
 	}
 }
 
-func (ts *taskService) TasktAlarm(ctx context.Context, mail, body string) {
-	flog.Info(mail, body)
+func (ts *taskService) CleanLog(ctx context.Context, day int64) {
+	f := time.Now().Add(-time.Hour * 24 * time.Duration(day)).Format("2006-01-02 15:04:05")
+	te := &model.TaskExcute{}
+	dsql := fmt.Sprintf("delete from %s where create_time < ?", te.TableName())
+	ts.DB.WithContext(ctx).Exec(dsql, f)
 }
 
 func (ts *taskService) do(ctx context.Context, t *model.Task) {

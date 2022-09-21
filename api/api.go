@@ -26,9 +26,26 @@ type Sapi struct {
 }
 
 func (a *Sapi) Index(c *fiber.Ctx) error {
-	if c.Path() != "/login" {
+	if c.Path() == "/init" {
+		count, _ := a.UserService.Count(c.Context())
+		if count == 0 {
+			return c.Render("index", fiber.Map{
+				"assets": configs.Get("assets"),
+			})
+		}
 		token := c.Cookies("access_token")
 		if token == "" {
+			return c.Redirect("/login", http.StatusTemporaryRedirect)
+		}
+		return c.Redirect("/", http.StatusTemporaryRedirect)
+	}
+	if c.Path() != "/login" && c.Path() != "/init" {
+		token := c.Cookies("access_token")
+		if token == "" {
+			count, _ := a.UserService.Count(c.Context())
+			if count == 0 {
+				return c.Redirect("/init", http.StatusTemporaryRedirect)
+			}
 			return c.Redirect("/login", http.StatusTemporaryRedirect)
 		}
 
@@ -42,6 +59,16 @@ func (a *Sapi) Index(c *fiber.Ctx) error {
 		if er == nil {
 			u = *nu
 		}
+		if nu.Status != user.STATUS_OK {
+			cookie := new(fiber.Cookie)
+			cookie.Name = "access_token"
+			cookie.Value = "deleted"
+			cookie.HTTPOnly = true
+			cookie.Secure = true
+			cookie.Expires = time.Now().Add(-3 * time.Second)
+			c.Cookie(cookie)
+			return c.Redirect("/login", http.StatusTemporaryRedirect)
+		}
 		return c.Render("index", fiber.Map{
 			"user":   u,
 			"assets": configs.Get("assets"),
@@ -53,6 +80,38 @@ func (a *Sapi) Index(c *fiber.Ctx) error {
 	})
 }
 
+func (a *Sapi) Init(c *fiber.Ctx) error {
+	count, er := a.UserService.Count(c.Context())
+	if er != nil {
+		return er
+	}
+	if count != 0 {
+		return service.NewServiceError("初始化设置已完成，请勿重复操作")
+	}
+	var u model.User
+	er = c.BodyParser(&u)
+	if er != nil {
+		return er
+	}
+
+	er = a.UserService.Add(c.Context(), &u)
+	if er != nil {
+		return er
+	}
+
+	flog.Info(u.Id)
+	dur := time.Hour * 72
+	token := a.Jwt.CreateToken(u, dur)
+	cookie := fiber.Cookie{
+		Name:     "access_token",
+		Value:    token,
+		Expires:  time.Now().Add(dur),
+		HTTPOnly: true,
+		Secure:   true,
+	}
+	c.Cookie(&cookie)
+	return c.JSON(u)
+}
 func (a *Sapi) Login(c *fiber.Ctx) error {
 	var u struct {
 		Username string `json:"username"`
@@ -170,10 +229,9 @@ func (a *Sapi) TaskUpdate(c *fiber.Ctx) error {
 	if er != nil {
 		return er
 	}
-	//uid := c.Locals("userId").(int64)
-	//t.UserId = uid
+	uid := c.Locals("userId").(int64)
 
-	return a.TaskService.Update(c.Context(), &t)
+	return a.TaskService.Update(c.Context(), uid, &t)
 }
 
 func (a *Sapi) TaskPage(c *fiber.Ctx) error {

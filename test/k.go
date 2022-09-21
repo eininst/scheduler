@@ -1,12 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"github.com/eininst/flog"
+	"time"
+)
 
 func main() {
-	s := "weweewewwex"
-
-	if len(s) > 5 {
-		fmt.Println(s[0:5])
-	}
-
+	f := time.Now().Add(-time.Hour * 24 * 3).Format("2006-01-02 15:04:05")
+	flog.Info(f)
 }

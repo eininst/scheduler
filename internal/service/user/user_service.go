@@ -32,6 +32,8 @@ type UserService interface {
 	GetById(ctx context.Context, id int64) (*model.User, error)
 	Login(ctx context.Context, username string, password string) (*model.User, error)
 	List(ctx context.Context, opt *types.UserOption) ([]*model.User, error)
+
+	Count(ctx context.Context) (int64, error)
 }
 
 type userService struct {
@@ -54,6 +56,9 @@ func (us *userService) Login(ctx context.Context,
 	}
 	if u.Password != util.Md5(password) {
 		return nil, service.NewServiceError("账号或密码错误")
+	}
+	if u.Status != STATUS_OK {
+		return nil, service.NewServiceError("账号不可用")
 	}
 	return &u, nil
 }
@@ -203,4 +208,13 @@ func (us *userService) List(ctx context.Context, opt *types.UserOption) ([]*mode
 	q.Find(&users, "status != ?", STATUS_DEL)
 
 	return users, nil
+}
+
+func (us *userService) Count(ctx context.Context) (int64, error) {
+	var count int64
+
+	q := us.DB.WithContext(ctx).Model(&model.User{})
+	er := q.Where("status != ?", STATUS_DEL).Count(&count).Error
+
+	return count, er
 }
