@@ -609,7 +609,7 @@ func (t *taskService) Dashboard(ctx context.Context) *types.Dashboard {
 	from scheduler_task_excute where create_time>? group by left(create_time, 10), code;`
 
 	var chart []*types.DashboardChart
-	tm := time.Now().Add(-time.Hour * 24 * time.Duration(14)).Format("2006-01-02")
+	tm := time.Now().Add(-time.Hour * 24 * time.Duration(10)).Format("2006-01-02")
 
 	sess.Raw(sql, fmt.Sprintf("%s 00:00:00", tm)).Find(&chart)
 
@@ -618,5 +618,6 @@ func (t *taskService) Dashboard(ctx context.Context) *types.Dashboard {
 		TaskRunCount:   taskRunCount,
 		SchedulerCount: schedulerCount,
 		Chart:          chart,
+		StartTime:      tm,
 	}
 }

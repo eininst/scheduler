@@ -15,6 +15,10 @@ type Consumer struct {
 	UserService user.UserService `inject:""`
 }
 
+func New() *Consumer {
+	return &Consumer{}
+}
+
 func (c *Consumer) Init() {
 	c.RsClient.Receive(rs.Rctx{
 		Stream: "cron_task_log",
@@ -48,5 +52,4 @@ func (c *Consumer) Init() {
 			flog.Info(ctx.Msg.Values)
 		},
 	})
-
 }

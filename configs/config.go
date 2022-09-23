@@ -16,10 +16,11 @@ var once sync.Once
 
 func SetConfig(conf_path string) {
 	once.Do(func() {
-		profile := os.Getenv("ENV")
+		profile := os.Getenv("profile")
 		if profile == "" {
 			profile = "dev"
 		}
+
 		flog.Infof("profile is: %s", profile)
 
 		file, err := os.Open(conf_path)
@@ -67,4 +68,7 @@ func Get(path ...string) gjson.Result {
 		}
 	}
 	return r
+}
+
+func Set(key string, value interface{}) {
 }

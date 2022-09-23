@@ -52,7 +52,6 @@ func (r *Router) Init() {
 	g := r.App.Group("/api/u", r.RequireLogin)
 
 	g.Get("/dashboard", r.Sapi.Dashboard)
-
 	g.Get("/user", r.Sapi.UserList)
 
 	g.Post("/user/add", r.RequireAdminRole, r.Sapi.UserAdd)

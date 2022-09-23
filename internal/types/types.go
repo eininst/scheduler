@@ -103,7 +103,7 @@ type Dashboard struct {
 	TaskCount    int64 `json:"taskCount"`
 	TaskRunCount int64 `json:"runCount"`
 
-	SchedulerCount int64 `json:"schedulerCount"`
-
-	Chart []*DashboardChart `json:"chart"`
+	SchedulerCount int64             `json:"schedulerCount"`
+	StartTime      string            `json:"startTime"`
+	Chart          []*DashboardChart `json:"chart"`
 }

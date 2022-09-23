@@ -26,11 +26,15 @@ type Sapi struct {
 }
 
 func (a *Sapi) Index(c *fiber.Ctx) error {
+	assets := configs.Get("assets").String()
+	if assets == "" {
+		assets = "/assets"
+	}
 	if c.Path() == "/init" {
 		count, _ := a.UserService.Count(c.Context())
 		if count == 0 {
 			return c.Render("index", fiber.Map{
-				"assets": configs.Get("assets"),
+				"assets": assets,
 			})
 		}
 		token := c.Cookies("access_token")
@@ -71,12 +75,12 @@ func (a *Sapi) Index(c *fiber.Ctx) error {
 		}
 		return c.Render("index", fiber.Map{
 			"user":   u,
-			"assets": configs.Get("assets"),
+			"assets": assets,
 		})
 	}
 
 	return c.Render("index", fiber.Map{
-		"assets": configs.Get("assets"),
+		"assets": assets,
 	})
 }
 
