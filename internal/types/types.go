@@ -55,6 +55,7 @@ type TaskExcuteOption struct {
 	TaskName  string `json:"taskName" form:"taskName"`
 	TaskGroup string `json:"taskGroup" form:"taskGroup"`
 	Status    string `json:"status" form:"status"`
+	Duration  int64  `json:"duration" form:"duration"`
 	StartTime string `json:"start_time" form:"start_time"`
 	EndTime   string `json:"end_time" form:"end_time"`
 }
@@ -82,4 +83,27 @@ type UserOption struct {
 	Name     string `json:"name" form:"name"`
 	RealName string `json:"realName" form:"realName"`
 	Status   string `json:"status" form:"status"`
+}
+
+type DashboardOption struct {
+}
+
+type DashboardChart struct {
+	Date  string `json:"date"`
+	Code  int64  `json:"code"`
+	Count int64  `json:"count"`
+}
+
+type DashboardPipe struct {
+	Count   int64   `json:"count"`
+	Percent float64 `json:"percent"`
+}
+
+type Dashboard struct {
+	TaskCount    int64 `json:"taskCount"`
+	TaskRunCount int64 `json:"runCount"`
+
+	SchedulerCount int64 `json:"schedulerCount"`
+
+	Chart []*DashboardChart `json:"chart"`
 }

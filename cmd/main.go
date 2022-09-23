@@ -13,6 +13,7 @@ import (
 	"github.com/eininst/scheduler/internal/service"
 	"github.com/eininst/scheduler/internal/service/task"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/monitor"
 	"github.com/gofiber/template/html"
 	"github.com/robfig/cron/v3"
 	"time"
@@ -74,6 +75,10 @@ func main() {
 		ErrorHandler: service.ErrorHandler,
 	})
 	app.Static("/assets", "./web/dist")
+	app.Get("/metrics", monitor.New(monitor.Config{
+		Title: "Scheduler",
+	}))
+
 	ninja.Install(new(api.Router), app)
 
 	//listen

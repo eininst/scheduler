@@ -45,12 +45,14 @@ func (r *Router) RequireAdminRole(c *fiber.Ctx) error {
 }
 
 func (r *Router) Init() {
-	r.App.Post("/api/login", r.Sapi.Login)
-
 	r.App.Post("/api/init", r.Sapi.Init)
+	r.App.Post("/api/login", r.Sapi.Login)
 	r.App.Post("/api/logout", r.Sapi.Logout)
 
 	g := r.App.Group("/api/u", r.RequireLogin)
+
+	g.Get("/dashboard", r.Sapi.Dashboard)
+
 	g.Get("/user", r.Sapi.UserList)
 
 	g.Post("/user/add", r.RequireAdminRole, r.Sapi.UserAdd)

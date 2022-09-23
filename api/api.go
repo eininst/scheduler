@@ -348,3 +348,9 @@ func (a *Sapi) ExcutePage(c *fiber.Ctx) error {
 	}
 	return c.JSON(page)
 }
+
+func (a *Sapi) Dashboard(c *fiber.Ctx) error {
+	data := a.TaskService.Dashboard(c.Context())
+
+	return c.JSON(data)
+}

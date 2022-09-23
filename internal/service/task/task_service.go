@@ -52,6 +52,8 @@ type TaskService interface {
 	ExcutePageByOption(ctx context.Context, opt *types.TaskExcuteOption) (*types.Page[*types.TaskExcuteDTO], error)
 
 	CleanLog(ctx context.Context, day int64)
+
+	Dashboard(ctx context.Context) *types.Dashboard
 }
 type taskService struct {
 	parse       cron.Parser
@@ -552,6 +554,9 @@ func (t *taskService) ExcutePageByOption(ctx context.Context, opt *types.TaskExc
 	if opt.EndTime != "" {
 		q = q.Where("create_time < ?", fmt.Sprintf("%s 23:59:59", opt.EndTime))
 	}
+	if opt.Duration != 0 {
+		q = q.Where("duration > ? ", opt.Duration)
+	}
 
 	q.Count(&total)
 	q.Limit(opt.PageSize).Offset(offset).Order("id desc").Find(&tasks)
@@ -583,4 +588,35 @@ func (t *taskService) ExcutePageByOption(ctx context.Context, opt *types.TaskExc
 	}
 
 	return pg, nil
+}
+
+func (t *taskService) Dashboard(ctx context.Context) *types.Dashboard {
+	sess := t.DB.WithContext(ctx)
+
+	var taskCount int64
+	var taskRunCount int64
+	var schedulerCount int64
+
+	sess.Model(&model.Task{}).Count(&taskCount)
+	sess.Model(&model.Task{}).Where("status = ?", STATUS_RUN).Count(&taskRunCount)
+
+	sess.Model(&model.TaskExcute{}).Count(&schedulerCount)
+
+	sql := `select 
+	left(create_time, 10) 'date',
+	code,
+	count(*) 'count'
+	from scheduler_task_excute where create_time>? group by left(create_time, 10), code;`
+
+	var chart []*types.DashboardChart
+	tm := time.Now().Add(-time.Hour * 24 * time.Duration(14)).Format("2006-01-02")
+
+	sess.Raw(sql, fmt.Sprintf("%s 00:00:00", tm)).Find(&chart)
+
+	return &types.Dashboard{
+		TaskCount:      taskCount,
+		TaskRunCount:   taskRunCount,
+		SchedulerCount: schedulerCount,
+		Chart:          chart,
+	}
 }
