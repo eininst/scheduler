@@ -15,5 +15,6 @@ func main() {
 	}
 
 	app := scheduler.New(*cfgPath)
+
 	app.Listen()
 }
