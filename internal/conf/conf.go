@@ -6,6 +6,7 @@ import (
 	"github.com/eininst/rlock"
 	"github.com/eininst/scheduler/configs"
 	"github.com/eininst/scheduler/internal/data"
+	"github.com/eininst/scheduler/internal/service/mail"
 	"github.com/eininst/scheduler/internal/service/task"
 	"github.com/eininst/scheduler/internal/service/user"
 	"github.com/robfig/cron/v3"
@@ -29,4 +30,6 @@ func Inject() {
 	//inject services
 	ninja.Provide(user.NewService())
 	ninja.Provide(task.NewService())
+
+	ninja.Provide(mail.NewService())
 }

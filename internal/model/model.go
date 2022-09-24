@@ -61,7 +61,7 @@ type TaskExcute struct {
 	TaskUrl    string `json:"taskUrl" gorm:"type:longtext;"`
 	TaskObj    string `json:"taskObj" gorm:"type:varchar(2048);default:''"`
 	Code       int    `json:"code" gorm:"type:int;index;default:0"`
-	Response   string `json:"response" gorm:"type:longtext;"`
+	Response   string `json:"response" gorm:"type:varchar(2048);default''"`
 	StartTime  string `json:"start_time" gorm:"type:varchar(32);index;default:''"`
 	EndTime    string `json:"end_time" gorm:"type:varchar(32);index;default:''"`
 	Duration   int64  `json:"duration" gorm:"type:int;index;default:0"`

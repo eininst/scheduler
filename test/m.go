@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/eininst/flog"
 	"github.com/ivpusic/grpool"
 	"time"
 )
@@ -24,6 +25,7 @@ func main() {
 	for i := 0; i < 10; i++ {
 		w(pool)
 	}
+	flog.Info("w")
 
 	<-make(chan int)
 }

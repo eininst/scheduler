@@ -3,7 +3,6 @@ module github.com/eininst/scheduler
 go 1.19
 
 require (
-	github.com/eininst/fiber-prefork-grace v0.0.0-20220909123310-3d1d6971b1cc
 	github.com/eininst/flog v0.0.0-20220904020527-6ff9b203833e
 	github.com/eininst/ninja v0.0.0-20220910001328-8c94e641ae51
 	github.com/eininst/rlock v0.0.0-20220913011522-0c433e981d62
@@ -41,5 +40,7 @@ require (
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/sys v0.0.0-20220913175220-63ea55921009 // indirect
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
+	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 )

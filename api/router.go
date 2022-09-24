@@ -45,6 +45,9 @@ func (r *Router) RequireAdminRole(c *fiber.Ctx) error {
 }
 
 func (r *Router) Init() {
+	r.App.Get("/err", func(ctx *fiber.Ctx) error {
+		return service.NewServiceError("error test")
+	})
 	r.App.Post("/api/init", r.Sapi.Init)
 	r.App.Post("/api/login", r.Sapi.Login)
 	r.App.Post("/api/logout", r.Sapi.Logout)
@@ -75,5 +78,5 @@ func (r *Router) Init() {
 
 	g.Get("/task/excute/page", r.Sapi.ExcutePage)
 
-	r.App.Get("/*", r.Sapi.Index)
+	r.App.Get("/*", r.Sapi.Index())
 }

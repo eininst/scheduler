@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"github.com/eininst/flog"
 	"github.com/eininst/go-jwt"
 	"github.com/eininst/ninja"
@@ -25,63 +26,98 @@ type Sapi struct {
 	TaskService task.TaskService `inject:""`
 }
 
-func (a *Sapi) Index(c *fiber.Ctx) error {
-	assets := configs.Get("assets").String()
-	if assets == "" {
-		assets = "/assets"
+type WebConfig struct {
+	Assets string `json:"assets"`
+	Title  string `json:"title"`
+	Desc   string `json:"desc"`
+	Logo   string `json:"logo"`
+	Avatar string `json:"avatar"`
+}
+
+func (a *Sapi) Index() fiber.Handler {
+	defaultWebConfig := &WebConfig{
+		Assets: "assets",
+		Title:  "Scheduler",
+		Desc:   "简单，开箱即用的定时任务平台",
+		Logo:   "",
+		Avatar: "https://nft-cj2533.oss-cn-zhangjiakou.aliyuncs.com/WechatIMG229.jpeg",
 	}
-	if c.Path() == "/init" {
-		count, _ := a.UserService.Count(c.Context())
-		if count == 0 {
-			return c.Render("index", fiber.Map{
-				"assets": assets,
-			})
+	var wcfg WebConfig
+
+	webConfigStr := configs.Get("web").String()
+	if webConfigStr == "" {
+		wcfg = *defaultWebConfig
+	} else {
+		er := json.Unmarshal([]byte(webConfigStr), &wcfg)
+		if er != nil {
+			wcfg = *defaultWebConfig
 		}
-		token := c.Cookies("access_token")
-		if token == "" {
-			return c.Redirect("/login", http.StatusTemporaryRedirect)
-		}
-		return c.Redirect("/", http.StatusTemporaryRedirect)
 	}
-	if c.Path() != "/login" && c.Path() != "/init" {
-		token := c.Cookies("access_token")
-		if token == "" {
+	if wcfg.Assets == "" {
+		wcfg.Assets = defaultWebConfig.Assets
+	}
+	if wcfg.Title == "" {
+		wcfg.Title = defaultWebConfig.Title
+	}
+	if wcfg.Avatar == "" {
+		wcfg.Avatar = defaultWebConfig.Avatar
+	}
+
+	return func(c *fiber.Ctx) error {
+		if c.Path() == "/init" {
 			count, _ := a.UserService.Count(c.Context())
 			if count == 0 {
-				return c.Redirect("/init", http.StatusTemporaryRedirect)
+				return c.Render("index", fiber.Map{
+					"config": wcfg,
+				})
 			}
-			return c.Redirect("/login", http.StatusTemporaryRedirect)
+			token := c.Cookies("access_token")
+			if token == "" {
+				return c.Redirect("/login", http.StatusTemporaryRedirect)
+			}
+			return c.Redirect("/", http.StatusTemporaryRedirect)
+		}
+		if c.Path() != "/login" && c.Path() != "/init" {
+			token := c.Cookies("access_token")
+			if token == "" {
+				count, _ := a.UserService.Count(c.Context())
+				if count == 0 {
+					return c.Redirect("/init", http.StatusTemporaryRedirect)
+				}
+				return c.Redirect("/login", http.StatusTemporaryRedirect)
+			}
+
+			var u model.User
+			er := a.Jwt.ParseToken(token, &u)
+			if er != nil {
+				return er
+			}
+
+			nu, er := a.UserService.GetById(c.Context(), u.Id)
+			if er == nil {
+				u = *nu
+			}
+			if nu.Status != user.STATUS_OK {
+				cookie := new(fiber.Cookie)
+				cookie.Name = "access_token"
+				cookie.Value = "deleted"
+				cookie.HTTPOnly = true
+				cookie.Secure = true
+				cookie.Expires = time.Now().Add(-3 * time.Second)
+				c.Cookie(cookie)
+				return c.Redirect("/login", http.StatusTemporaryRedirect)
+			}
+			return c.Render("index", fiber.Map{
+				"user":   u,
+				"config": wcfg,
+			})
 		}
 
-		var u model.User
-		er := a.Jwt.ParseToken(token, &u)
-		if er != nil {
-			return er
-		}
-
-		nu, er := a.UserService.GetById(c.Context(), u.Id)
-		if er == nil {
-			u = *nu
-		}
-		if nu.Status != user.STATUS_OK {
-			cookie := new(fiber.Cookie)
-			cookie.Name = "access_token"
-			cookie.Value = "deleted"
-			cookie.HTTPOnly = true
-			cookie.Secure = true
-			cookie.Expires = time.Now().Add(-3 * time.Second)
-			c.Cookie(cookie)
-			return c.Redirect("/login", http.StatusTemporaryRedirect)
-		}
 		return c.Render("index", fiber.Map{
-			"user":   u,
-			"assets": assets,
+			"config": wcfg,
 		})
 	}
 
-	return c.Render("index", fiber.Map{
-		"assets": assets,
-	})
 }
 
 func (a *Sapi) Init(c *fiber.Ctx) error {

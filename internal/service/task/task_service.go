@@ -404,7 +404,6 @@ func (t *taskService) PageByOption(ctx context.Context, opt *types.TaskOption) (
 func (t *taskService) AddExcute(ctx context.Context, taskExcute *model.TaskExcute) error {
 	session := t.DB.WithContext(ctx)
 	taskExcute.CreateTime = util.FormatTime()
-
 	err := session.Create(&taskExcute).Error
 	if err != nil {
 		return service.NewServiceError("创建任务记录失败")
@@ -498,7 +497,7 @@ func (ts *taskService) do(ctx context.Context, t *model.Task) {
 		if len(sbody) > 500 {
 			sbody = sbody[0:500]
 		}
-		texcute.Response = util.Unicode2utf8(sbody)
+		texcute.Response = sbody
 	}
 
 	texcute.Code = code
@@ -506,6 +505,7 @@ func (ts *taskService) do(ctx context.Context, t *model.Task) {
 	texcute.Duration = time.Now().UnixMilli() - startDuration
 
 	texcuteStr, _ := json.Marshal(texcute)
+
 	_ = ts.RsClient.Send("cron_task_log", rs.H{
 		"data": string(texcuteStr),
 	})

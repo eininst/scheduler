@@ -34,10 +34,6 @@ type app struct {
 	RsClient    rs.Client          `inject:""`
 }
 
-//var Assets = "/assets"
-
-//var defaultSecretKey = "b956160659554dbcb0ae65e2f7d5de14"
-
 type Config struct {
 	RedisClient *redis.Client
 	DB          *gorm.DB
@@ -70,11 +66,18 @@ func (a *app) cronStart() *cron.Cron {
 func (a *app) Listen(port string) {
 	a.CronCli.Start()
 	a.TaskService.RunTask(context.Background())
-
+	retainDay := configs.Get("log", "retain").Int()
+	interval := configs.Get("log", "interval").Int()
+	if retainDay == 0 {
+		retainDay = 10
+	}
+	if interval == 0 {
+		interval = 60 * 5
+	}
 	go func() {
 		for {
-			time.Sleep(time.Minute * 10)
-			a.TaskService.CleanLog(context.TODO(), 10)
+			time.Sleep(time.Second * time.Duration(interval))
+			a.TaskService.CleanLog(context.TODO(), retainDay)
 		}
 	}()
 
@@ -90,8 +93,13 @@ func (a *app) Listen(port string) {
 		ErrorHandler: service.ErrorHandler,
 	})
 	app.Static("/assets", "./web/dist")
+
+	title := configs.Get("web", "title").String()
+	if title == "" {
+		title = "Scheduler"
+	}
 	app.Get("/metrics", monitor.New(monitor.Config{
-		Title: "Scheduler",
+		Title: title,
 	}))
 
 	ninja.Install(new(api.Router), app)
