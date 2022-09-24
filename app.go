@@ -2,6 +2,8 @@ package scheduler
 
 import (
 	"context"
+	"fmt"
+	"github.com/eininst/flog"
 	"github.com/eininst/ninja"
 	"github.com/eininst/rs"
 	"github.com/eininst/scheduler/api"
@@ -10,21 +12,20 @@ import (
 	"github.com/eininst/scheduler/internal/consumer"
 	"github.com/eininst/scheduler/internal/service"
 	"github.com/eininst/scheduler/internal/service/task"
-	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
 	"github.com/gofiber/template/html"
 	"github.com/robfig/cron/v3"
-	"gorm.io/gorm"
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 )
 
 type App interface {
-	Listen(port string)
+	Listen(cfg ...Config)
 }
 
 type app struct {
@@ -35,10 +36,8 @@ type app struct {
 }
 
 type Config struct {
-	RedisClient *redis.Client
-	DB          *gorm.DB
-	SecretKey   string
-	LogWorker   int64
+	Port string
+	Sig  os.Signal
 }
 
 func New(cfgPath string) App {
@@ -63,7 +62,31 @@ func (a *app) cronStart() *cron.Cron {
 	}()
 	return a.CronCli
 }
-func (a *app) Listen(port string) {
+
+func (a *app) Listen(config ...Config) {
+	port := configs.Get("port").String()
+	var sig os.Signal
+	if len(config) > 0 {
+		cfg := config[0]
+		port = cfg.Port
+		if cfg.Sig != nil {
+			sig = cfg.Sig
+		}
+	}
+
+	if sig == nil {
+		sig = syscall.SIGTERM
+	}
+
+	flog.Info(sig)
+
+	if port == "" {
+		flog.Fatal("port is required in config.yaml")
+	}
+	if !strings.HasPrefix(port, ":") {
+		port = fmt.Sprintf(":%s", port)
+	}
+
 	a.CronCli.Start()
 	a.TaskService.RunTask(context.Background())
 	retainDay := configs.Get("log", "retain").Int()
@@ -107,7 +130,7 @@ func (a *app) Listen(port string) {
 	go func() { _ = app.Listen(port) }()
 
 	quit := make(chan os.Signal)
-	signal.Notify(quit, syscall.SIGTERM)
+	signal.Notify(quit, sig)
 	<-quit
 	a.CronCli.Stop()
 	a.Consumer.RsClient.Shutdown()

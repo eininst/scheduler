@@ -1,6 +1,6 @@
 tablePrefix: "scheduler_"
 secretKey: "b956160659554dbcb0ae65e2f7d5de14"
-
+port: 3000
 web:
   title: xxxxx
   desc: xxxx
@@ -18,7 +18,7 @@ mail:
   host: smtp.qq.com
   port: 465
   username: eininst@qq.com
-  password: fbkhlrysrbkbbhjd
+  password: xx
   sendWork: 5
 
   cc:
