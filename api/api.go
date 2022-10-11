@@ -40,7 +40,7 @@ func (a *Sapi) Index() fiber.Handler {
 		Title:  "Scheduler",
 		Desc:   "简单，开箱即用的定时任务平台",
 		Logo:   "",
-		Avatar: "https://nft-cj2533.oss-cn-zhangjiakou.aliyuncs.com/WechatIMG229.jpeg",
+		Avatar: "",
 	}
 	var wcfg WebConfig
 
