@@ -17,7 +17,7 @@ docker run  -v /xxx/xxx.yaml:/config.yaml \
 ```
 ## Config yaml
 
-```text
+```yaml
 tablePrefix: "scheduler_"
 secretKey: "xxxxxxxxxxxxxxxxxxxxxxxx"
 port: 3000
