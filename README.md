@@ -4,23 +4,16 @@
 
 ## ⚙ Installation
 
-```text
-go get -u github.com/eininst/scheduler
+```docker
+docker pull registry.cn-zhangjiakou.aliyuncs.com/eininst/scheduler:v1
 ```
 
 ## ⚡ Quickstart
 
-```go
-package main
-
-import (
-    "github.com/eininst/scheduler"
-)
-
-func main() {
-    app := scheduler.New("./configs/config.yaml")
-    app.Listen()
-}
+```docker
+docker run  -v /xxx/xxx.yaml:/config.yaml \
+    -e profile=dev -p "3000:3000" --net=bridge \
+    registry.cn-zhangjiakou.aliyuncs.com/eininst/scheduler:v1
 ```
 ## Config yaml
 
@@ -67,8 +60,6 @@ mysql:
   maxOpenCount: 128
   maxLifetime: 7200
 ```
-
-> See [examples](/examples)
 
 ## License
 

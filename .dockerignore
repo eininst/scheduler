@@ -1,0 +1,7 @@
+website/node_modules
+website/src
+website/mock
+Dockerfile
+.git
+.gitignore
+*.md
