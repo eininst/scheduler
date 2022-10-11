@@ -17,6 +17,7 @@ func NewRedisClient() *redis.Client {
 		Db           int    `json:"db"`
 		PoolSize     int    `json:"poolSize"`
 		MinIdleCount int    `json:"minIdleCount"`
+		Username     string `json:"username"`
 		Password     string `json:"password"`
 	}
 	rstr := configs.Get("redis").String()
@@ -24,6 +25,7 @@ func NewRedisClient() *redis.Client {
 
 	rcli := redis.NewClient(&redis.Options{
 		Addr:         rconf.Addr,
+		Username:     rconf.Username,
 		Password:     rconf.Password,
 		DB:           rconf.Db,
 		DialTimeout:  30 * time.Second,
