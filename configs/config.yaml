@@ -18,7 +18,7 @@ mail:
   host: smtp.qq.com
   port: 465
   username: eininst@qq.com
-  password: fbkhlrysrbkbbhjd
+  password: fbkhlrysrbkbbhjd@#
   work: 5
 
   cc:
