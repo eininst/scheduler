@@ -11,7 +11,9 @@ import (
 	"github.com/eininst/scheduler/internal/service/mail"
 	"github.com/eininst/scheduler/internal/service/task"
 	"github.com/eininst/scheduler/internal/service/user"
+	"github.com/gofiber/fiber/v2/utils"
 	"github.com/valyala/fasttemplate"
+	"strconv"
 	"strings"
 )
 
@@ -26,11 +28,50 @@ func New() *Consumer {
 	return &Consumer{}
 }
 
+func (c *Consumer) runTask(ctx *rs.Context) {
+	defer ctx.Ack()
+	taskIdStr := ctx.Msg.Values["taskId"]
+	taskId, err := strconv.ParseInt(taskIdStr.(string), 10, 64)
+	if err != nil {
+		return
+	}
+
+	er := c.TaskService.RunTaskById(ctx, taskId)
+	if er != nil {
+		flog.Error(er)
+	}
+}
+
+func (c *Consumer) stopTask(ctx *rs.Context) {
+	defer ctx.Ack()
+	taskIdStr := ctx.Msg.Values["taskId"]
+	taskId, err := strconv.ParseInt(taskIdStr.(string), 10, 64)
+	if err != nil {
+		return
+	}
+
+	c.TaskService.DelEntry(ctx, taskId)
+}
+
 func (c *Consumer) Init() {
-	taskLogWork := configs.Get("log", "  collectWork").Int()
+	taskLogWork := configs.Get("log", "  work").Int()
 	if taskLogWork == 0 {
 		taskLogWork = 5
 	}
+	c.RsClient.Receive(rs.Rctx{
+		Stream:  "task_run",
+		Work:    rs.Int(1024),
+		Group:   utils.UUIDv4(),
+		Handler: c.runTask,
+	})
+
+	c.RsClient.Receive(rs.Rctx{
+		Stream:  "task_stop",
+		Work:    rs.Int(1024),
+		Group:   utils.UUIDv4(),
+		Handler: c.stopTask,
+	})
+
 	c.RsClient.Receive(rs.Rctx{
 		Stream: "cron_task_log",
 		Work:   rs.Int(int(taskLogWork)),
@@ -56,7 +97,7 @@ func (c *Consumer) Init() {
 		},
 	})
 
-	mailWork := configs.Get("mail", "  sendWork").Int()
+	mailWork := configs.Get("mail", "  work").Int()
 	if mailWork == 0 {
 		mailWork = 5
 	}
@@ -79,6 +120,9 @@ func (c *Consumer) Init() {
 			u, er := c.UserService.GetById(ctx, excute.UserId)
 			if er != nil {
 				flog.Error(er)
+				return
+			}
+			if u.Mail == "" {
 				return
 			}
 

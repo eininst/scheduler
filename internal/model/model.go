@@ -32,7 +32,7 @@ type Task struct {
 	UserId      int64  `json:"userId" gorm:"type:bigint(20);index;default:0"`
 	Name        string `json:"name" gorm:"type:varchar(100);unique;default:''"`
 	Group       string `json:"group" gorm:"type:varchar(100);index;default:''"`
-	Spec        string `json:"spec" gorm:"type:varchar(64);default:''"`
+	Cron        string `json:"cron" gorm:"type:varchar(64);default:''"`
 	Url         string `json:"url" gorm:"type:varchar(256);default:''"`
 	Method      string `json:"method" gorm:"type:varchar(10);default:''"`
 	ContentType string `json:"contentType" gorm:"type:varchar(64);default:''"`

@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"github.com/eininst/scheduler/internal/model"
 	"github.com/eininst/scheduler/internal/service"
 	"github.com/eininst/scheduler/internal/types"
@@ -22,9 +23,15 @@ const (
 	ROLE_NORMAL = "normal"
 )
 
+var SORT_MAP = map[string]string{
+	"createTime": "create_time",
+}
+
 type UserService interface {
 	Add(ctx context.Context, user *model.User) error
 	Update(ctx context.Context, user *model.User) error
+	ResetPassword(ctx context.Context, id int64, password string) error
+
 	Enable(ctx context.Context, id int64) error
 	Disable(ctx context.Context, id int64) error
 	Delete(ctx context.Context, id int64) error
@@ -102,10 +109,12 @@ func (us *userService) Update(ctx context.Context, user *model.User) error {
 		u.CreateTime = util.FormatTime()
 	}
 
-	var count int64
-	sess.Model(&model.User{}).Where("role = ?", ROLE_ADMIN).Count(&count)
-	if count == 1 && user.Role != ROLE_ADMIN {
-		return service.NewServiceError("修改失败、系统需要至少保留一个管理员权限账号")
+	if user.Role != checkUser.Role {
+		var count int64
+		sess.Model(&model.User{}).Where("role = ?", ROLE_ADMIN).Count(&count)
+		if count == 1 && user.Role != u.Role && u.Role == ROLE_ADMIN {
+			return service.NewServiceError("修改失败、系统需要至少保留一个管理员权限账号")
+		}
 	}
 
 	er := sess.Model(&u).Updates(&model.User{
@@ -114,13 +123,26 @@ func (us *userService) Update(ctx context.Context, user *model.User) error {
 		Mail:       user.Mail,
 		Role:       user.Role,
 		Head:       user.Head,
-		Password:   util.Md5(user.Password),
 		CreateTime: u.CreateTime,
 	}).Error
 
 	if er != nil {
 		return service.NewServiceError("修改账号失败")
 	}
+	return er
+}
+
+func (us *userService) ResetPassword(ctx context.Context, id int64, password string) error {
+	var u model.User
+	sess := us.DB.WithContext(ctx)
+	sess.First(&u, id)
+	if u.Id == 0 {
+		return service.ERROR_DATA_NOT_FOUND
+	}
+
+	er := sess.Model(&u).Updates(&model.User{
+		Password: util.Md5(password),
+	}).Error
 	return er
 }
 
@@ -149,7 +171,7 @@ func (us *userService) Disable(ctx context.Context, id int64) error {
 
 	var count int64
 	sess.Model(&model.User{}).Where("role = ?", ROLE_ADMIN).Count(&count)
-	if count == 1 {
+	if count == 1 && u.Role == ROLE_ADMIN {
 		return service.NewServiceError("禁用失败、系统需要至少保留一个有效的管理员权限账号")
 	}
 
@@ -205,8 +227,23 @@ func (us *userService) List(ctx context.Context, opt *types.UserOption) ([]*mode
 	if opt.Status != "" {
 		q = q.Where("status = ?", opt.Status)
 	}
-	q.Find(&users, "status != ?", STATUS_DEL)
+	if opt.Role != "" {
+		q = q.Where("role = ?", opt.Role)
+	}
+	if opt.Sort != "" {
+		sort, ok := SORT_MAP[opt.Sort]
+		if ok {
+			if opt.Dir == "ascend" {
+				q = q.Order(fmt.Sprintf("%s", sort))
+			} else {
+				q = q.Order(fmt.Sprintf("%s desc", sort))
+			}
+		}
+	} else {
+		q = q.Order("id desc")
+	}
 
+	q.Find(&users, "status != ?", STATUS_DEL)
 	return users, nil
 }
 

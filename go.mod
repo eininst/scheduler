@@ -4,7 +4,6 @@ go 1.19
 
 require (
 	github.com/eininst/flog v0.0.0-20220904020527-6ff9b203833e
-	github.com/eininst/ninja v0.0.0-20220910001328-8c94e641ae51
 	github.com/eininst/rlock v0.0.0-20220913011522-0c433e981d62
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gofiber/fiber/v2 v2.37.1

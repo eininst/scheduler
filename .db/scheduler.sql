@@ -22,7 +22,7 @@ CREATE TABLE `scheduler_task`
     `user_id`      bigint(20) DEFAULT 0,
     `name`         varchar(100)  DEFAULT '',
     `group`        varchar(64)   default '',
-    `spec`         varchar(64)   DEFAULT '',
+    `cron`         varchar(64)   DEFAULT '',
     `url`          varchar(128)  DEFAULT 0,
     `method`       varchar(128)  DEFAULT '',
     `content_type` varchar(128)  DEFAULT '',

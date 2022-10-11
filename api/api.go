@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"github.com/eininst/flog"
 	"github.com/eininst/go-jwt"
-	"github.com/eininst/ninja"
 	"github.com/eininst/scheduler/configs"
+	"github.com/eininst/scheduler/internal/inject"
 	"github.com/eininst/scheduler/internal/model"
 	"github.com/eininst/scheduler/internal/service"
 	"github.com/eininst/scheduler/internal/service/task"
@@ -17,7 +17,7 @@ import (
 )
 
 func init() {
-	ninja.Provide(new(Sapi))
+	inject.Provide(new(Sapi))
 }
 
 type Sapi struct {
@@ -139,7 +139,6 @@ func (a *Sapi) Init(c *fiber.Ctx) error {
 		return er
 	}
 
-	flog.Info(u.Id)
 	dur := time.Hour * 72
 	token := a.Jwt.CreateToken(u, dur)
 	cookie := fiber.Cookie{
@@ -213,6 +212,16 @@ func (a *Sapi) UserUpdate(c *fiber.Ctx) error {
 	return a.UserService.Update(c.Context(), &u)
 }
 
+func (a *Sapi) UserResetPassword(c *fiber.Ctx) error {
+	var u model.User
+	er := c.BodyParser(&u)
+	if er != nil {
+		return er
+	}
+
+	return a.UserService.ResetPassword(c.Context(), u.Id, u.Password)
+}
+
 func (a *Sapi) UserEnable(c *fiber.Ctx) error {
 	id, er := c.ParamsInt("id")
 	if er != nil {
@@ -249,6 +258,12 @@ func (a *Sapi) UserList(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(users)
+}
+
+func (a *Sapi) TaskDo(c *fiber.Ctx) error {
+	id, _ := c.ParamsInt("id")
+	uid := c.Locals("userId").(int64)
+	return a.TaskService.DoOnce(c.Context(), uid, int64(id))
 }
 
 func (a *Sapi) TaskAdd(c *fiber.Ctx) error {

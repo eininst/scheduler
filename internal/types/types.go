@@ -16,6 +16,8 @@ type TaskOption struct {
 	Name   string `json:"name" form:"name"`
 	Group  string `json:"group" form:"group"`
 	Status string `json:"status" form:"status"`
+	Sort   string `json:"sort" form:"sort"`
+	Dir    string `json:"dir" form:"dir"`
 }
 
 type TaskDTO struct {
@@ -27,7 +29,7 @@ type TaskDTO struct {
 	UserMail     string `json:"userMail"`
 	Name         string `json:"name"`
 	Group        string `json:"group"`
-	Spec         string `json:"spec"`
+	Cron         string `json:"cron"`
 	Url          string `json:"url"`
 	Method       string `json:"method"`
 	ContentType  string `json:"contentType"`
@@ -58,6 +60,8 @@ type TaskExcuteOption struct {
 	Duration  int64  `json:"duration" form:"duration"`
 	StartTime string `json:"start_time" form:"start_time"`
 	EndTime   string `json:"end_time" form:"end_time"`
+	Sort      string `json:"sort" form:"sort"`
+	Dir       string `json:"dir" form:"dir"`
 }
 
 type TaskExcuteDTO struct {
@@ -82,21 +86,16 @@ type TaskExcuteDTO struct {
 type UserOption struct {
 	Name     string `json:"name" form:"name"`
 	RealName string `json:"realName" form:"realName"`
+	Role     string `json:"role" form:"role"`
 	Status   string `json:"status" form:"status"`
-}
-
-type DashboardOption struct {
+	Sort     string `json:"sort" form:"sort"`
+	Dir      string `json:"dir" form:"dir"`
 }
 
 type DashboardChart struct {
 	Date  string `json:"date"`
 	Code  int64  `json:"code"`
 	Count int64  `json:"count"`
-}
-
-type DashboardPipe struct {
-	Count   int64   `json:"count"`
-	Percent float64 `json:"percent"`
 }
 
 type Dashboard struct {

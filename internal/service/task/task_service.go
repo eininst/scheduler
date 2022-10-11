@@ -26,11 +26,17 @@ const (
 	STATUS_RUN  = "run"
 	STATUS_DEL  = "del"
 
-	GET    = "get"
-	POST   = "post"
-	PUT    = "put"
-	DELETE = "delete"
+	GET    = "GET"
+	POST   = "POST"
+	PUT    = "PUT"
+	DELETE = "DELETE"
 )
+
+var SORT_MAP = map[string]string{
+	"createTime": "create_time",
+	"start_time": "start_time",
+	"duration":   "duration",
+}
 
 type TaskService interface {
 	RunTask(ctx context.Context)
@@ -41,6 +47,10 @@ type TaskService interface {
 	Start(ctx context.Context, userId int64, id int64) error
 	Stop(ctx context.Context, userId int64, id int64) error
 	Del(ctx context.Context, userId int64, id int64) error
+
+	DoOnce(ctx context.Context, uid int64, id int64) error
+	RunTaskById(ctx context.Context, taskId int64) error
+	DelEntry(ctx context.Context, taskId int64)
 
 	UpdateUser(ctx context.Context, tcu *types.TaskChangeUser) (int64, error)
 	StartBatch(ctx context.Context, userId int64, tbatch *types.TaskBatch) (int64, error)
@@ -78,7 +88,7 @@ func NewService() TaskService {
 }
 
 func (t *taskService) Add(ctx context.Context, task *model.Task) error {
-	_, er := t.parse.Parse(task.Spec)
+	_, er := t.parse.Parse(task.Cron)
 	if er != nil {
 		return service.NewServiceError("无效的Cron表达式")
 	}
@@ -126,7 +136,7 @@ func (t *taskService) Update(ctx context.Context, userId int64, task *model.Task
 		return service.NewServiceError("任务处于运行中，修改失败")
 	}
 
-	_, er := t.parse.Parse(task.Spec)
+	_, er := t.parse.Parse(task.Cron)
 	if er != nil {
 		return service.NewServiceError("无效的Cron表达式")
 	}
@@ -144,7 +154,7 @@ func (t *taskService) Update(ctx context.Context, userId int64, task *model.Task
 		UserId:      task.UserId,
 		Name:        task.Name,
 		Group:       task.Group,
-		Spec:        task.Spec,
+		Cron:        task.Cron,
 		Url:         task.Url,
 		Method:      task.Method,
 		ContentType: task.ContentType,
@@ -156,6 +166,32 @@ func (t *taskService) Update(ctx context.Context, userId int64, task *model.Task
 	if err != nil {
 		return service.NewServiceError("修改任务失败")
 	}
+
+	return nil
+}
+
+func (t *taskService) DoOnce(ctx context.Context, uid int64, id int64) error {
+	session := t.DB.WithContext(ctx)
+
+	var u model.User
+	session.First(&u, uid)
+	if u.Id == 0 {
+		return service.ERROR_DATA_NOT_FOUND
+	}
+
+	var task model.Task
+	session.First(&task, id)
+	if task.Id == 0 {
+		return service.ERROR_DATA_NOT_FOUND
+	}
+
+	if u.Role != user.ROLE_ADMIN {
+		if task.Id != u.Id {
+			return service.NewServiceError("权限不足，执行失败")
+		}
+	}
+
+	t.do(ctx, &task)
 
 	return nil
 }
@@ -251,7 +287,9 @@ func (ts *taskService) Start(ctx context.Context, userId int64, id int64) error 
 		return service.NewServiceError("启动失败")
 	}
 
-	er = ts.runTask(ctx, &t)
+	er = ts.RsClient.Send("task_run", rs.H{
+		"task_id": t.Id,
+	})
 	if er != nil {
 		return er
 	}
@@ -291,7 +329,13 @@ func (ts *taskService) Stop(ctx context.Context, userId int64, id int64) error {
 	if er != nil {
 		return service.NewServiceError("停止失败")
 	}
-	ts.delEntry(ctx, id)
+
+	er = ts.RsClient.Send("task_stop", rs.H{
+		"task_id": t.Id,
+	})
+	if er != nil {
+		return er
+	}
 
 	return nil
 }
@@ -325,14 +369,37 @@ func (ts *taskService) Del(ctx context.Context, userId int64, id int64) error {
 		return service.NewServiceError("删除失败")
 	}
 
-	ts.delEntry(ctx, id)
+	er = ts.RsClient.Send("task_stop", rs.H{
+		"task_id": t.Id,
+	})
+	if er != nil {
+		return er
+	}
 
 	return nil
 }
 
 func (ts *taskService) runTask(ctx context.Context, t *model.Task) error {
-	eid, er := ts.CronCli.AddFunc(t.Spec, func() {
+	eid, er := ts.CronCli.AddFunc(t.Cron, func() {
 		ts.do(ctx, t)
+	})
+	if er != nil {
+		return er
+	}
+
+	ts.addEntry(ctx, t.Id, eid)
+	return nil
+}
+
+func (ts *taskService) RunTaskById(ctx context.Context, taskId int64) error {
+	var t model.Task
+	ts.DB.WithContext(ctx).First(&t, taskId)
+	if t.Id == 0 {
+		return service.ERROR_DATA_NOT_FOUND
+	}
+
+	eid, er := ts.CronCli.AddFunc(t.Cron, func() {
+		ts.do(ctx, &t)
 	})
 	if er != nil {
 		return er
@@ -369,9 +436,25 @@ func (t *taskService) PageByOption(ctx context.Context, opt *types.TaskOption) (
 		q = q.Where("status = ?", opt.Status)
 	}
 
-	q.Count(&total)
-	q.Limit(opt.PageSize).Offset(offset).Order("id desc").Find(&tasks)
+	q = q.Count(&total)
 
+	q = q.Limit(opt.PageSize).Offset(offset)
+
+	if opt.Sort != "" {
+		sort, ok := SORT_MAP[opt.Sort]
+		if ok {
+			if opt.Dir == "ascend" {
+				q = q.Order(fmt.Sprintf("%s", sort))
+			} else {
+				q = q.Order(fmt.Sprintf("%s desc", sort))
+			}
+		}
+	} else {
+		q = q.Order("id desc")
+	}
+
+	q.Find(&tasks)
+	//sort
 	taskDtos := []*types.TaskDTO{}
 	err := copier.Copy(&taskDtos, &tasks)
 	if err != nil {
@@ -419,7 +502,7 @@ func (ts *taskService) addEntry(ctx context.Context, taskId int64, eid cron.Entr
 	ts.TaskMap[taskId] = eid
 }
 
-func (ts *taskService) delEntry(ctx context.Context, taskId int64) {
+func (ts *taskService) DelEntry(ctx context.Context, taskId int64) {
 	ts.mux.Lock()
 	defer ts.mux.Unlock()
 
@@ -449,6 +532,12 @@ func (ts *taskService) CleanLog(ctx context.Context, day int64) {
 }
 
 func (ts *taskService) do(ctx context.Context, t *model.Task) {
+	lockName := fmt.Sprintf("task_do:%v", t.Id)
+	ok, cancel := ts.Rlock.TryAcquire(lockName, time.Second*time.Duration(t.Timeout))
+	defer cancel()
+	if !ok {
+		return
+	}
 	jsonInfo, _ := json.Marshal(t)
 	texcute := &model.TaskExcute{
 		UserId:    t.UserId,
@@ -548,18 +637,34 @@ func (t *taskService) ExcutePageByOption(ctx context.Context, opt *types.TaskExc
 	}
 
 	if opt.StartTime != "" {
-		q = q.Where("create_time > ?", fmt.Sprintf("%s 00:00:0", opt.StartTime))
+		q = q.Where("start_time > ?", fmt.Sprintf("%s 00:00:0", opt.StartTime))
 	}
 
 	if opt.EndTime != "" {
-		q = q.Where("create_time < ?", fmt.Sprintf("%s 23:59:59", opt.EndTime))
+		q = q.Where("start_time < ?", fmt.Sprintf("%s 23:59:59", opt.EndTime))
 	}
 	if opt.Duration != 0 {
 		q = q.Where("duration > ? ", opt.Duration)
 	}
 
 	q.Count(&total)
-	q.Limit(opt.PageSize).Offset(offset).Order("id desc").Find(&tasks)
+
+	q = q.Limit(opt.PageSize).Offset(offset)
+	//q.Limit(opt.PageSize).Offset(offset).Order("id desc").Find(&tasks)
+
+	if opt.Sort != "" {
+		sort, ok := SORT_MAP[opt.Sort]
+		if ok {
+			if opt.Dir == "ascend" {
+				q = q.Order(fmt.Sprintf("%s", sort))
+			} else {
+				q = q.Order(fmt.Sprintf("%s desc", sort))
+			}
+		}
+	} else {
+		q = q.Order("id desc")
+	}
+	q.Find(&tasks)
 
 	taskDtos := []*types.TaskExcuteDTO{}
 

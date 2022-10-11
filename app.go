@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/eininst/flog"
-	"github.com/eininst/ninja"
 	"github.com/eininst/rs"
 	"github.com/eininst/scheduler/api"
 	"github.com/eininst/scheduler/configs"
 	"github.com/eininst/scheduler/internal/conf"
 	"github.com/eininst/scheduler/internal/consumer"
+	"github.com/eininst/scheduler/internal/inject"
 	"github.com/eininst/scheduler/internal/service"
 	"github.com/eininst/scheduler/internal/service/task"
 	"github.com/gofiber/fiber/v2"
@@ -43,10 +43,10 @@ type Config struct {
 func New(cfgPath string) App {
 	configs.SetConfig(cfgPath)
 	conf.Inject()
-	ninja.Provide(consumer.New())
+	inject.Provide(consumer.New())
 	app := &app{}
-	ninja.Provide(app)
-	ninja.Populate()
+	inject.Provide(app)
+	inject.Populate()
 	return app
 }
 
@@ -108,14 +108,14 @@ func (a *app) Listen(config ...Config) {
 	go a.RsClient.Listen()
 
 	//app
-	engine := html.New("./web/views", ".html")
+	engine := html.New("./website/views", ".html")
 	app := fiber.New(fiber.Config{
 		Views:        engine,
 		Prefork:      false,
 		ReadTimeout:  time.Second * 10,
 		ErrorHandler: service.ErrorHandler,
 	})
-	app.Static("/assets", "./web/dist")
+	app.Static("/assets", "./website/dist")
 
 	title := configs.Get("web", "title").String()
 	if title == "" {
@@ -125,7 +125,7 @@ func (a *app) Listen(config ...Config) {
 		Title: title,
 	}))
 
-	ninja.Install(new(api.Router), app)
+	inject.Install(new(api.Router), app)
 
 	go func() { _ = app.Listen(port) }()
 

@@ -1,11 +1,37 @@
-import { defineConfig } from 'umi';
+import {defineConfig} from 'umi';
+import aliyunTheme from '@ant-design/aliyun-theme';
 
+console.log(process.env.NODE_ENV)
+
+var configs: any = {
+  // dynamicImport: {}
+}
+// development
+// production
+if (process.env.NODE_ENV == "production") {
+  configs = {
+    dynamicImport: {},
+    mfsu: {}
+  }
+}
 export default defineConfig({
+  // title: '管理平台业务模版',
+  // base: "/mp",
+  ...configs,
   nodeModulesTransform: {
     type: 'none',
   },
-  routes: [
-    { path: '/', component: '@/pages/index' },
-  ],
+  layout: {},
+  // theme: aliyunTheme,
   fastRefresh: {},
+  // theme: {
+  //   '@primary-color': '#1DA57A',
+  // },
+  antd: {
+    dark: false,
+    compact: false,
+  },
+  cssLoader: {
+    localsConvention: 'camelCase',
+  },
 });
