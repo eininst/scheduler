@@ -4,7 +4,6 @@ port: 3000
 web:
   title: Scheduler
   desc: 简单，开箱即用的定时任务平台
-  assets: http://localhost:8000
   logo:
   avatar:
 

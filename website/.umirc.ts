@@ -11,7 +11,8 @@ var configs: any = {
 if (process.env.NODE_ENV == "production") {
   configs = {
     dynamicImport: {},
-    mfsu: {}
+    mfsu: {},
+    publicPath:"/assets/"
   }
 }
 export default defineConfig({
@@ -22,7 +23,7 @@ export default defineConfig({
     type: 'none',
   },
   layout: {},
-  // theme: aliyunTheme,
+  theme: aliyunTheme,
   fastRefresh: {},
   // theme: {
   //   '@primary-color': '#1DA57A',
