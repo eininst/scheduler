@@ -72,7 +72,7 @@ mysql:
 docker pull registry.cn-zhangjiakou.aliyuncs.com/eininst/scheduler:v1
 ```
 
-## For Docker
+## Run in docker
 
 ```docker
 docker run \
