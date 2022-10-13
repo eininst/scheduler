@@ -47,7 +47,7 @@ const userRequest = async (params: any) => {
       if (status == 200) {
         var d = res.data.map((item: any) => {
           return {
-            label: item.realName == "" ? item.userName : item.realName,
+            label: item.realName == "" ? item.name : item.realName,
             value: item.id + "",
           }
         })
