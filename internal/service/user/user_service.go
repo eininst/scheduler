@@ -111,7 +111,7 @@ func (us *userService) Update(ctx context.Context, user *model.User) error {
 
 	if user.Role != checkUser.Role {
 		var count int64
-		sess.Model(&model.User{}).Where("role = ?", ROLE_ADMIN).Count(&count)
+		sess.Model(&model.User{}).Where("role = ? and status = ?", ROLE_ADMIN, STATUS_OK).Count(&count)
 		if count == 1 && user.Role != u.Role && u.Role == ROLE_ADMIN {
 			return service.NewServiceError("修改失败、系统需要至少保留一个管理员权限账号")
 		}
@@ -170,7 +170,8 @@ func (us *userService) Disable(ctx context.Context, id int64) error {
 	}
 
 	var count int64
-	sess.Model(&model.User{}).Where("role = ?", ROLE_ADMIN).Count(&count)
+	sess.Model(&model.User{}).Where("role = ? and status = ?", ROLE_ADMIN, STATUS_OK).Count(&count)
+
 	if count == 1 && u.Role == ROLE_ADMIN {
 		return service.NewServiceError("禁用失败、系统需要至少保留一个有效的管理员权限账号")
 	}
@@ -192,7 +193,7 @@ func (us *userService) Delete(ctx context.Context, id int64) error {
 	}
 
 	var count int64
-	sess.Model(&model.User{}).Where("role = ?", ROLE_ADMIN).Count(&count)
+	sess.Model(&model.User{}).Where("role = ? and status = ?", ROLE_ADMIN, STATUS_OK).Count(&count)
 	if count == 1 && u.Role == ROLE_ADMIN {
 		return service.NewServiceError("删除失败、系统需要至少保留一个管理员权限账号")
 	}

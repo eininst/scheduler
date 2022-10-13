@@ -650,7 +650,6 @@ func (t *taskService) ExcutePageByOption(ctx context.Context, opt *types.TaskExc
 	q.Count(&total)
 
 	q = q.Limit(opt.PageSize).Offset(offset)
-	//q.Limit(opt.PageSize).Offset(offset).Order("id desc").Find(&tasks)
 
 	if opt.Sort != "" {
 		sort, ok := SORT_MAP[opt.Sort]
