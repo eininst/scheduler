@@ -42,7 +42,7 @@ func main() {
 ## Case
 > visit http://localhost:3000
 
-<img alt="Redoc logo" src="https://nft-cj2533.oss-cn-zhangjiakou.aliyuncs.com/3.png"  width="900px" height="500px"/>
+<img alt="Redoc logo" src="https://nft-cj2533.oss-cn-zhangjiakou.aliyuncs.com/3.png"  width="920px" height="520px"/>
 
 
 
