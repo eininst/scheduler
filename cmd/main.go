@@ -13,6 +13,5 @@ func main() {
 	}
 
 	app := scheduler.New(config)
-
 	app.Listen()
 }

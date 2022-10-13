@@ -26,7 +26,7 @@ export default defineConfig({
   theme: aliyunTheme,
   fastRefresh: {},
   // theme: {
-  //   '@primary-color': '#1DA57A',
+  //   '@primary-color': '#EE6363',
   // },
   antd: {
     dark: false,
