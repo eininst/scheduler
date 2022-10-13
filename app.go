@@ -6,6 +6,7 @@ import (
 	"github.com/eininst/flog"
 	"github.com/eininst/rs"
 	"github.com/eininst/scheduler/api"
+	"github.com/eininst/scheduler/bindata"
 	"github.com/eininst/scheduler/configs"
 	"github.com/eininst/scheduler/internal/conf"
 	"github.com/eininst/scheduler/internal/consumer"
@@ -14,9 +15,9 @@ import (
 	"github.com/eininst/scheduler/internal/service/task"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
-	"github.com/gofiber/template/html"
 	"github.com/robfig/cron/v3"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -63,6 +64,26 @@ func (a *app) cronStart() *cron.Cron {
 	return a.CronCli
 }
 
+func (a *app) binDataAssets(app *fiber.App) {
+	app.Get("/assets/umi.js", func(ctx *fiber.Ctx) error {
+		s, er := bindata.Asset("dist/umi.js")
+		if er != nil {
+			return ctx.SendStatus(http.StatusNotFound)
+		}
+		ctx.Type("js")
+		return ctx.Send(s)
+	})
+
+	app.Get("/assets/umi.css", func(ctx *fiber.Ctx) error {
+		s, er := bindata.Asset("dist/umi.css")
+		if er != nil {
+			return ctx.SendStatus(http.StatusNotFound)
+		}
+		ctx.Type("css")
+		return ctx.Send(s)
+	})
+}
+
 func (a *app) Listen(config ...Config) {
 	port := configs.Get("port").String()
 	var sig os.Signal
@@ -77,8 +98,6 @@ func (a *app) Listen(config ...Config) {
 	if sig == nil {
 		sig = syscall.SIGTERM
 	}
-
-	flog.Info(sig)
 
 	if port == "" {
 		flog.Fatal("port is required in config.yaml")
@@ -108,14 +127,13 @@ func (a *app) Listen(config ...Config) {
 	go a.RsClient.Listen()
 
 	//app
-	engine := html.New("./website/views", ".html")
 	app := fiber.New(fiber.Config{
-		Views:        engine,
 		Prefork:      false,
 		ReadTimeout:  time.Second * 10,
 		ErrorHandler: service.ErrorHandler,
 	})
-	app.Static("/assets", "./website/dist")
+
+	a.binDataAssets(app)
 
 	title := configs.Get("web", "title").String()
 	if title == "" {

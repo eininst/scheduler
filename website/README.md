@@ -1,15 +1,19 @@
-# umi project
-
 ## Getting Started
 
-Install dependencies,
+Install dependencies
 
-```bash
-$ yarn
+```install
+$  npm install
 ```
 
-Start the dev server,
+Start the dev server
 
-```bash
-$ yarn start
+```start
+$ npm run start
+```
+
+Build
+
+```build
+$ npm run build
 ```

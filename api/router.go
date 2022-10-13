@@ -13,6 +13,7 @@ type Router struct {
 	Jwt         *jwt.Jwt         `inject:""`
 	App         *fiber.App       `inject:""`
 	Sapi        *Sapi            `inject:""`
+	IndexApi    *IndexApi        `inject:""`
 	UserService user.UserService `inject:""`
 }
 
@@ -81,5 +82,5 @@ func (r *Router) Init() {
 
 	g.Get("/task/excute/page", r.Sapi.ExcutePage)
 
-	r.App.Get("/*", r.Sapi.Index())
+	r.App.Get("/*", r.IndexApi.Index())
 }

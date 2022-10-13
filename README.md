@@ -2,23 +2,25 @@
 
 [![Build Status](https://travis-ci.org/ivpusic/grpool.svg?branch=master)](https://github.com/infinitasx/easi-go-aws)
 
-## ⚙ Installation
-
-```docker
-docker pull registry.cn-zhangjiakou.aliyuncs.com/eininst/scheduler:v1
+## Installation
+```go
+go get -u github.com/eininst/scheduler
 ```
 
 ## ⚡ Quickstart
+```go
+package main
 
-```docker
-docker run \
-    -v /xxx/xxx.yaml:/config.yaml \
-    -e profile=dev \
-    -p "3000:3000" \
-    --net=bridge \
-    registry.cn-zhangjiakou.aliyuncs.com/eininst/scheduler:v1
+import "github.com/eininst/scheduler"
+
+func main() {
+    app := scheduler.New("./configs/config.yaml")
+    app.Listen()
+}
 ```
-## Config yaml
+
+
+## ⚙ Config
 
 ```yaml
 tablePrefix: "scheduler_"
@@ -64,6 +66,27 @@ mysql:
   maxLifetime: 7200
 ```
 
+## For Docker
+
+```docker
+docker pull registry.cn-zhangjiakou.aliyuncs.com/eininst/scheduler:v1
+```
+
+## For Docker
+
+```docker
+docker run \
+    -v /xxx/xxx.yaml:/config.yaml \
+    -e profile=dev \
+    -p "3000:3000" \
+    --log-opt max-size=1024m \
+    --log-opt max-file=3 \
+    --net=bridge \
+    registry.cn-zhangjiakou.aliyuncs.com/eininst/scheduler:v1
+```
+
+> See [examples](/examples)
+> 
 ## License
 
 *MIT*

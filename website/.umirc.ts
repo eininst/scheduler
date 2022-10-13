@@ -10,8 +10,8 @@ var configs: any = {
 // production
 if (process.env.NODE_ENV == "production") {
   configs = {
-    dynamicImport: {},
-    mfsu: {},
+    // dynamicImport: {},
+    // mfsu: {},
     publicPath:"/assets/"
   }
 }

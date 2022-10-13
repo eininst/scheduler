@@ -3,12 +3,22 @@ package util
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
 )
+
+func CurrentFile() string {
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		panic(errors.New("Can not get current file info"))
+	}
+	return file
+}
 
 func Md5(value string) string {
 	m := md5.New()
