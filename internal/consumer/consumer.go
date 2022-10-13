@@ -30,7 +30,8 @@ func New() *Consumer {
 
 func (c *Consumer) runTask(ctx *rs.Context) {
 	defer ctx.Ack()
-	taskIdStr := ctx.Msg.Values["taskId"]
+	taskIdStr := ctx.Msg.Values["task_id"]
+
 	taskId, err := strconv.ParseInt(taskIdStr.(string), 10, 64)
 	if err != nil {
 		return
@@ -44,7 +45,7 @@ func (c *Consumer) runTask(ctx *rs.Context) {
 
 func (c *Consumer) stopTask(ctx *rs.Context) {
 	defer ctx.Ack()
-	taskIdStr := ctx.Msg.Values["taskId"]
+	taskIdStr := ctx.Msg.Values["task_id"]
 	taskId, err := strconv.ParseInt(taskIdStr.(string), 10, 64)
 	if err != nil {
 		return

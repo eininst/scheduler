@@ -313,9 +313,8 @@ export default function IndexPage() {
           </Tooltip>
         </>
       ),
-      width: 170,
+      width: 154,
       key: 'createTime',
-      // valueType: 'dateRange',
       dataIndex: 'createTime',
       search: false,
       sorter: (a, b) => a.createTime - b.createTime,

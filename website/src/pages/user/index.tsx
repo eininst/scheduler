@@ -146,7 +146,7 @@ export default function IndexPage() {
       title: '用户名',
       dataIndex: 'name',
       copyable: true,
-      order:100,
+      order: 100,
       render: (_, record) => {
         return <a>{_}</a>
       },
@@ -166,7 +166,7 @@ export default function IndexPage() {
       dataIndex: 'realName',
       align: 'left',
       copyable: false,
-      order:99,
+      order: 99,
     },
     {
       title: '报警邮箱',
@@ -194,7 +194,7 @@ export default function IndexPage() {
           </Tooltip>
         </>
       ),
-      width: 170,
+      width: 160,
       key: 'createTime',
       // valueType: 'dateRange',
       dataIndex: 'createTime',
@@ -207,24 +207,37 @@ export default function IndexPage() {
       width: 220,
       key: 'option',
       valueType: 'option',
-      render: (dom, record) => [
-        (record.status == "ok" ?
-          <a key={"run" + record.id} onClick={() => disable(record.id)}>禁用</a>
-          : <a key={"run" + record.id} onClick={() => enbale(record.id)}>启用</a>),
-        <a key={"edit" + record.id} onClick={() => edit(record)}>修改</a>,
-        <a key={"edit" + record.id} onClick={() => showResetPassword(record)}>重置密码</a>,
-        <Popconfirm
-          key={"del" + record.id}
-          title="确认要删除吗?"
-          onConfirm={() => {
-            del(record.id);
-          }}
-          okText="是"
-          cancelText="否"
-        >
-          <a href="#">删除</a>
-        </Popconfirm>,
-      ],
+      render: (dom, record) => {
+        return [
+          (record.status == "ok" ?
+            <Popconfirm
+              key={"disable" + record.id}
+              title="确认要禁用吗?"
+              onConfirm={() => {
+                disable(record.id);
+              }}
+              okText="是"
+              cancelText="否"
+            >
+              <a key={"disable" + record.id}>禁用</a>
+            </Popconfirm>
+            : <a key={"enable" + record.id} onClick={() => enbale(record.id)}>启用</a>),
+          <a key={"edit" + record.id} onClick={() => edit(record)}>修改</a>,
+          <a key={"reset" + record.id} onClick={() => showResetPassword(record)}>重置密码</a>,
+          <Popconfirm
+            key={"del" + record.id}
+            title="确认要删除吗?"
+            onConfirm={() => {
+              del(record.id);
+            }}
+            okText="是"
+            cancelText="否"
+          >
+            <a href="#">删除</a>
+          </Popconfirm>
+        ]
+      }
+
     },
   ];
 
