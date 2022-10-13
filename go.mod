@@ -7,7 +7,6 @@ require (
 	github.com/eininst/rlock v0.0.0-20220913011522-0c433e981d62
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gofiber/fiber/v2 v2.37.1
-	github.com/gofiber/template v1.7.1
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/tidwall/gjson v1.14.3
 	gopkg.in/yaml.v3 v3.0.1
