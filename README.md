@@ -58,7 +58,7 @@ port: 3000
 
 web:
   title: Scheduler
-  desc: 简单，开箱即用的定时任务平台
+  desc: 简单，开箱即用的分布式定时任务平台
   logo:
   avatar:
 
