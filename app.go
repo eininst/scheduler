@@ -139,8 +139,10 @@ func (a *app) Listen(config ...Config) {
 	if title == "" {
 		title = "Scheduler"
 	}
+
+	hostname, _ := os.Hostname()
 	app.Get("/metrics", monitor.New(monitor.Config{
-		Title: title,
+		Title: fmt.Sprintf("%s(%s)", title, hostname),
 	}))
 
 	inject.Install(new(api.Router), app)

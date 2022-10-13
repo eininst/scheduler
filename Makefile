@@ -12,4 +12,5 @@ run:
 
 clean:
 	yes | docker system prune
-.PHONY: build run clean
+
+.PHONY: build push run clean
