@@ -92,6 +92,8 @@ func (a *IndexApi) Index() fiber.Handler {
 			nu, er := a.UserService.GetById(c.Context(), u.Id)
 			if er == nil {
 				u = *nu
+			} else {
+				return c.Redirect("/init", http.StatusTemporaryRedirect)
 			}
 			if nu.Status != user.STATUS_OK {
 				cookie := new(fiber.Cookie)

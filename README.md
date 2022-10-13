@@ -18,6 +18,32 @@ func main() {
     app.Listen()
 }
 ```
+> runing...
+```text
+2022/10/13 17:59:26 [INFO] config.go:24 profile is: dev
+2022/10/13 17:59:26 [DEBUG] rdb.go:47 Connected to Redis server...  addr=r-8vbbqc8wfszjqhvnvnpd.redis.zhangbei.rds.aliyuncs.com:6379 db=0 poolSize=100
+2022/10/13 17:59:27 Connected to Mysql server...
+2022/10/13 17:59:27 [INFO] [RS] Stream "task_run:9e45874e-4310-4067-b60c-9f099ba039c6" working... # BlockTime=15s MaxRetries=3 ReadCount=20 Timeout=5m0s Work=1024
+2022/10/13 17:59:27 [INFO] [RS] Stream "task_stop:4ad63215-b771-4ff9-ac27-46a8a3189ee5" working... # BlockTime=15s MaxRetries=3 ReadCount=20 Timeout=5m0s Work=1024
+2022/10/13 17:59:27 [INFO] [RS] Stream "cron_task_log" working... # BlockTime=15s MaxRetries=3 ReadCount=20 Timeout=5m0s Work=5
+2022/10/13 17:59:27 [INFO] [RS] Stream "cron_task_alarm" working... # BlockTime=15s MaxRetries=3 ReadCount=20 Timeout=5m0s Work=5
+
+ ┌───────────────────────────────────────────────────┐ 
+ │                   Fiber v2.37.1                   │ 
+ │               http://127.0.0.1:3000               │ 
+ │       (bound on host 0.0.0.0 and port 3000)       │ 
+ │                                                   │ 
+ │ Handlers ............ 48  Processes ........... 1 │ 
+ │ Prefork ....... Disabled  PID ............. 28765 │ 
+ └───────────────────────────────────────────────────┘ 
+
+```
+
+## Case
+> visit http://localhost:3000
+
+<img alt="Redoc logo" src="https://nft-cj2533.oss-cn-zhangjiakou.aliyuncs.com/3.png"  width="800px"/>
+
 
 
 ## ⚙ Config
@@ -65,10 +91,6 @@ mysql:
   maxOpenCount: 128
   maxLifetime: 7200
 ```
-
-## See
-<img alt="Redoc logo" src="https://nft-cj2533.oss-cn-zhangjiakou.aliyuncs.com/1.png"  width="800px"/>
-
 
 ## For Docker
 
