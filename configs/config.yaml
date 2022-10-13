@@ -4,7 +4,7 @@ port: 3000
 
 web:
   title: Scheduler
-  desc: 简单，开箱即用的定时任务平台
+  desc: 简单，开箱即用的分布式定时任务平台
   logo:
   avatar:
 
@@ -29,7 +29,7 @@ mail:
 profile: dev
 
 redis:
-  addr: r-8vbbqc8wfszjqhvnvnpd.redis.zhangbei.rds.aliyuncs.com:6379
+  addr: xxxxx.redis.zhangbei.rds.aliyuncs.com:6379
   db: 0
   poolSize: 100
   minIdleCount: 20
@@ -37,7 +37,7 @@ redis:
   password: 7c3cD505
 
 mysql:
-  dsn: nft:Aa505814@tcp(rm-8vb1e31d324dk08i1ho.mysql.zhangbei.rds.aliyuncs.com:3306)/nft?charset=utf8mb4&parseTime=True&loc=Local
+  dsn: xx:xx@tcp(xxxxxxx:3306)/nft?charset=utf8mb4&parseTime=True&loc=Local
   maxIdleCount: 32
   maxOpenCount: 128
   maxLifetime: 7200

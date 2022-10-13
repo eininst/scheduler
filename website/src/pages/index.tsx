@@ -1,5 +1,5 @@
 import {PageContainer} from "@ant-design/pro-layout";
-import {Card, Col, Row, Skeleton, Statistic} from "antd";
+import {Alert, Card, Col, Row, Skeleton, Statistic} from "antd";
 import {useEffect, useState} from "react";
 import {GET} from "@/global";
 import {Chart} from "@antv/g2";
@@ -17,21 +17,23 @@ export default function IndexPage(props: any) {
       setLoading(false);
       if (status == 200) {
         setData(res.data)
-        chart(res.data.chart);
+        if (res.data.chart.length > 0) {
+          chart(res.data.chart);
+        }
       }
     })
   }, []);
 
   const chart = (data: any) => {
-    var data = data.map((item:any)=>{
-      if(item.code==200){
+    var data = data.map((item: any) => {
+      if (item.code == 200) {
         item.code = "成功"
-      }else{
+      } else {
         item.code = "失败"
       }
       return {
         ...item,
-        code:item.code+""
+        code: item.code + ""
       }
     })
     const chart = new Chart({
@@ -67,7 +69,7 @@ export default function IndexPage(props: any) {
       .line()
       .position('date*count')
       .color('code', (v) => {
-        if (v =="失败") {
+        if (v == "失败") {
           return 'red';
         }
         return 'green';
@@ -78,7 +80,7 @@ export default function IndexPage(props: any) {
       .point()
       .position('date*count')
       .color('code', (v) => {
-        if (v =="失败") {
+        if (v == "失败") {
           return 'red';
         }
         return 'green';
@@ -132,11 +134,12 @@ export default function IndexPage(props: any) {
             </Col>
           </Row>
 
-          <Row gutter={16} style={{marginTop: 40}}>
+          {data.schedulerCount > 0 ? <Row gutter={16} style={{marginTop: 40}}>
             <Col span={24}>
               <div id="container"/>
             </Col>
-          </Row>
+          </Row> : <Alert message={"暂无调度数据"} type={"warning"} style={{marginTop: 20}}></Alert>}
+
         </div>
       </Skeleton>
     </PageContainer>
