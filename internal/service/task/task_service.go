@@ -7,6 +7,7 @@ import (
 	"github.com/eininst/flog"
 	"github.com/eininst/rlock"
 	"github.com/eininst/rs"
+	"github.com/eininst/scheduler/configs"
 	"github.com/eininst/scheduler/internal/model"
 	"github.com/eininst/scheduler/internal/service"
 	"github.com/eininst/scheduler/internal/service/user"
@@ -568,6 +569,10 @@ func (ts *taskService) do(ctx context.Context, t *model.Task) {
 		return
 	}
 
+	apiKey := configs.Get("apiKey").String()
+	if apiKey != "" {
+		agt.Add("apiKey", apiKey)
+	}
 	agt.BodyString(t.Body)
 	agt.Timeout(time.Second * time.Duration(t.Timeout))
 	//agt.ReadTimeout = time.Second * 3
