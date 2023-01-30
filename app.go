@@ -27,6 +27,7 @@ import (
 
 type App interface {
 	Listen(cfg ...Config)
+	//GetFiber() *fiber.App
 }
 
 type app struct {
@@ -131,6 +132,10 @@ func (a *app) Listen(config ...Config) {
 		Prefork:      false,
 		ReadTimeout:  time.Second * 10,
 		ErrorHandler: service.ErrorHandler,
+	})
+
+	app.Get("/status", func(ctx *fiber.Ctx) error {
+		return ctx.SendStatus(http.StatusOK)
 	})
 
 	a.binDataAssets(app)
