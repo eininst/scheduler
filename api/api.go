@@ -84,7 +84,7 @@ func (a *Sapi) Login(c *fiber.Ctx) error {
 		Value:    token,
 		Expires:  time.Now().Add(dur),
 		HTTPOnly: true,
-		Secure:   true,
+		Secure:   false,
 	}
 	c.Cookie(&cookie)
 
